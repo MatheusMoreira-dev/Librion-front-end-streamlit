@@ -1,71 +1,60 @@
 import streamlit as st
+import componentes
 
-# Configuração inicial da página
-st.set_page_config(page_title="Librion - Rede de Bibliotecas", layout="wide")
+# 1. Configuração da página
+st.set_page_config(
+    page_title="Librion - Conectando Bibliotecas", 
+    layout="wide", 
+    initial_sidebar_state="collapsed"
+)
 
-def main():
-    # --- 1. CABEÇALHO / NAVBAR ---
-    # Criando colunas para distribuir o logo e os links de menu
-    col_logo, col_nav, col_login = st.columns([2, 5, 1])
+# 2. Chamar o menu superior
+componentes.menu_superior()
 
-    with col_logo:
-        st.markdown("### 📘 Librion")
-        st.caption("Rede Municipal de Bibliotecas")
+# --- SEÇÃO HERO (Destaque) ---
+# Usamos colunas para criar um respiro lateral e focar o conteúdo no centro
+_, col_hero, _ = st.columns([1, 8, 1])
 
-    with col_nav:
-        # Criando um menu simples usando colunas internas
-        m1, m2, m3, m4 = st.columns(4)
-        m1.button("Início", use_container_width=True)
-        m2.button("Catálogo", use_container_width=True)
-        m3.button("Sobre", use_container_width=True)
-        m4.button("Ajuda", use_container_width=True)
-
-    with col_login:
-        st.button("Entrar", type="primary")
-        
-    st.divider() # Linha horizontal para separar
-
-    # --- 2. SEÇÃO HERO (DESTAQUE) ---
-    # Como não usamos CSS para sobrepor texto à imagem,
-    # usamos uma organização vertical limpa.
+with col_hero:
+    # Título e Subtítulo impactantes
+    st.markdown("# Conectando todas as bibliotecas em um só lugar")
+    st.markdown("### Acesse o acervo completo da Rede Municipal de Bibliotecas de Crato-CE. Empreste livros de qualquer unidade com facilidade.")
     
-    st.title("Conectando todas as bibliotecas em um só lugar")
-    st.subheader("Acesse o acervo completo da Rede Municipal de Bibliotecas de Crato-CE.")
-    st.write("Pegue livros de qualquer unidade com facilidade.")
+    # Botões de Ação
+    c1, c2, _ = st.columns([1.5, 1.5, 7])
+    with c1:
+        if st.button("Acessar minha conta", type="primary", use_container_width=True):
+            st.switch_page("pages/2_Login.py")
+    with c2:
+        if st.button("Explorar acervo", use_container_width=True):
+            st.switch_page("pages/1_Catalogo.py")
     
-    col_btn1, col_btn2, _ = st.columns([2, 2, 6])
-    with col_btn1:
-        st.button("Acessar minha conta", use_container_width=True, type="primary")
-    with col_btn2:
-        st.button("Explorar acervo", use_container_width=True)
+    # Imagem de destaque (podes trocar pela imagem real do teu projeto)
+    st.image("https://images.unsplash.com/photo-1481627581964-f141f00567b7?q=80&w=2000", use_container_width=True)
 
-    # Espaçamento
-    st.write("##")
-    st.divider()
+st.write("##") # Espaçamento
+st.divider()
 
-    # --- 3. SEÇÃO DE RECURSOS (COLUNAS) ---
-    # Criando 4 colunas para os ícones e textos informativos
-    feat1, feat2, feat3, feat4 = st.columns(4)
+# --- SEÇÃO DE RECURSOS (Os 4 cards inferiores) ---
+st.write("##")
+f1, f2, f3, f4 = st.columns(4)
 
-    with feat1:
-        st.markdown("### 📖", text_alignment="center")
-        st.markdown("**Acervo Completo**", text_alignment="center")
-        st.markdown("Acesse milhares de livros de todas as bibliotecas municipais.", text_alignment="center")
+with f1:
+    st.markdown("### 📖")
+    st.markdown("**Acervo Completo**")
+    st.caption("Acesse milhares de livros de todas as bibliotecas municipais.")
 
-    with feat2:
-        st.markdown("### 🕸️", text_alignment="center")
-        st.markdown("**Rede Integrada**", text_alignment="center")
-        st.markdown("Solicite livros de outras unidades sem sair de casa.")
+with f2:
+    st.markdown("### 🕸️")
+    st.markdown("**Rede Integrada**")
+    st.caption("Solicite livros de outras unidades sem sair de casa.")
 
-    with feat3:
-        st.markdown("### 👥", text_alignment="center")
-        st.markdown("**Comunidade Leitora**", text_alignment="center")
-        st.markdown("Faça parte de uma comunidade apaixonada por leitura.")
+with f3:
+    st.markdown("### 👥")
+    st.markdown("**Comunidade Leitora**")
+    st.caption("Faça parte de uma comunidade apaixonada por leitura.")
 
-    with feat4:
-        st.markdown("### 🏅", text_alignment="center")
-        st.markdown("**Recomendações**", text_alignment="center")
-        st.markdown("Receba sugestões personalizadas de leitura.", text_alignment="center")
-
-if __name__ == "__main__":
-    main()
+with f4:
+    st.markdown("### 🏅")
+    st.markdown("**Recomendações**")
+    st.caption("Receba sugestões personalizadas de leitura baseadas no seu perfil.")
