@@ -47,15 +47,22 @@ with centro:
             resultado = validar_login(email, senha)
             
             if resultado["sucesso"]:
-                # Guardamos as informações na "Memória de Curto Prazo" (Session State)
+                # 1. Guardamos as informações na "Memória de Curto Prazo" (Session State)
                 st.session_state.logado = True
                 st.session_state.perfil = resultado["perfil"]
                 st.session_state.nome_usuario = resultado["nome"]
+
+                # 2. Definimos se é o primeiro acesso (para forçar troca de senha depois)
+                 # No futuro, o seu back-end dirá se é True ou False
+                st.session_state.primeiro_acesso = True
                 
                 st.success(f"Bem-vindo, {resultado['nome']}!")
                 
-                # Redireciona para a Home após o login
-                st.switch_page("Home.py")
+                # Lógica de redirecionamento:
+                if resultado["perfil"] == "admin":  
+                    st.switch_page("pages/4_Admin_Livros.py") # Vai direto para o cadastro
+                else:
+                    st.switch_page("pages/7_Minha_Conta.py") # Leitor vai para a página dele
             else:
                 st.error(resultado["mensagem"])
 
