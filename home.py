@@ -1,5 +1,6 @@
 import streamlit as st
 import componentes
+import cards
 
 # 1. Configuração da página
 st.set_page_config(
@@ -37,24 +38,4 @@ st.divider()
 
 # --- SEÇÃO DE RECURSOS (Os 4 cards inferiores) ---
 st.write("##")
-f1, f2, f3, f4 = st.columns(4)
-
-with f1:
-    st.markdown("### 📖")
-    st.markdown("**Acervo Completo**")
-    st.caption("Acesse milhares de livros de todas as bibliotecas municipais.")
-
-with f2:
-    st.markdown("### 🕸️")
-    st.markdown("**Rede Integrada**")
-    st.caption("Solicite livros de outras unidades sem sair de casa.")
-
-with f3:
-    st.markdown("### 👥")
-    st.markdown("**Comunidade Leitora**")
-    st.caption("Faça parte de uma comunidade apaixonada por leitura.")
-
-with f4:
-    st.markdown("### 🏅")
-    st.markdown("**Recomendações**")
-    st.caption("Receba sugestões personalizadas de leitura baseadas no seu perfil.")
+cards.exibir_cards()

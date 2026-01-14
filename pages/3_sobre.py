@@ -1,5 +1,6 @@
 import streamlit as st
 import componentes
+import cards
 
 # 1. Configuração da página
 st.set_page_config(page_title="Sobre o Librion", layout="wide")
@@ -13,48 +14,23 @@ with st.container(border=True):
     st.markdown("<h2 style='text-align: center;'>Bem-vindo ao Librion</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>O sistema integrado de gerenciamento das bibliotecas municipais de Crato, Ceará</p>", unsafe_allow_html=True)
 
-st.write("##")
+st.write("")
 
 # --- TEXTO INSTITUCIONAL ---
 with st.container(border=True):
-    st.subheader("Sobre o Librion")
-    st.write("""
+    st.subheader("Sobre o Librion", text_alignment="center")
+    st.markdown("""
     O Librion é uma plataforma inovadora que conecta todas as bibliotecas municipais de Crato-CE em uma única rede integrada. 
     Nosso objetivo é democratizar o acesso ao conhecimento, facilitando o empréstimo de livros e a gestão do acervo bibliográfico.
-    
     Com o Librion, você pode acessar o catálogo completo de todas as bibliotecas municipais, fazer reservas online e solicitar livros 
-    de outras unidades, tudo isso de forma simples e intuitiva.
-    
-    O nome "Librion" combina "Library" (biblioteca) com "Lion" (leão), simbolizando força, conhecimento e a união de todas as 
+    de outras unidades, tudo isso de forma simples e intuitiva. O nome "Librion" combina "Library" (biblioteca) com "On" (online), simbolizando conhecimento e a união de todas as 
     bibliotecas em uma grande rede de sabedoria.
-    """)
+    """, text_alignment="justify")
 
 st.write("##")
 
 # --- GRID DE RECURSOS (2x2) ---
-col_rec1, col_rec2 = st.columns(2)
-
-with col_rec1:
-    with st.container(border=True):
-        st.markdown("### 📖")
-        st.markdown("**Acervo Completo**")
-        st.write("Acesse milhares de livros de todas as bibliotecas municipais em um único lugar.")
-
-    with st.container(border=True):
-        st.markdown("### 👥")
-        st.markdown("**Comunidade**")
-        st.write("Faça parte de uma comunidade apaixonada por leitura e conhecimento.")
-
-with col_rec2:
-    with st.container(border=True):
-        st.markdown("### 🕸️")
-        st.markdown("**Rede Integrada**")
-        st.write("Solicite livros de outras unidades e receba na sua biblioteca de referência.")
-
-    with st.container(border=True):
-        st.markdown("### 🎗️")
-        st.markdown("**Recomendações**")
-        st.write("Receba sugestões personalizadas baseadas em suas preferências de leitura.")
+cards.exibir_cards()
 
 st.write("##")
 
