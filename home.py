@@ -25,10 +25,10 @@ with col_hero:
     c1, c2, _ = st.columns([1.5, 1.5, 7])
     with c1:
         if st.button("Acessar minha conta", type="primary", use_container_width=True):
-            st.switch_page("pages/2_Login.py")
+            st.switch_page("pages/2_login.py")
     with c2:
         if st.button("Explorar acervo", use_container_width=True):
-            st.switch_page("pages/1_Catalogo.py")
+            st.switch_page("pages/1_catalogo.py")
     
     # Imagem de destaque (podes trocar pela imagem real do teu projeto)
     st.image("https://images.unsplash.com/photo-1481627581964-f141f00567b7?q=80&w=2000", use_container_width=True)
