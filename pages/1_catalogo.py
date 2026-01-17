@@ -1,9 +1,9 @@
 import streamlit as st
 import componentes
-from utils.api import do_get
+from utils.api import do_get, do_post
 
 # Configuração da página
-st.set_page_config(page_title="Librion - Catálogo", layout="wide")
+st.set_page_config(page_title="Librion | Catálogo", layout="wide")
 
 # Exibir o menu superior (que criámos anteriormente)
 componentes.menu_superior()
@@ -16,35 +16,52 @@ def header():
 # Busca os livros na API
 def fetch_books(filters = None):
     if filters:
-        return do_get("/books/search", params=filters)
+        return do_post("/books/search", json=filters)
     else:
         return do_get("/books")
 
-# Formulário para filtragem
-def set_filters():
-    # bibliotecas da API
-    list_libraries = do_get("/libraries")
+# Busca na session os filtros selecionados
+def filter_books():
+    filters = {
+        "title" : st.session_state.title if not "" else None,
+        "library_ids": list(map(lambda l:int(l["id"]), st.session_state.libraries))
+    }
 
-    # Formulário de livros
-    with st.form("search_form"):
+    # Busca na API os livros filtrados e salva em uma "variável" de estado "books"
+    st.session_state.books = fetch_books(filters)
+
+# Limpa os filtros a atualiza o grid
+def clear_filters():
+    st.session_state.title = None
+    st.session_state.libraries = []
+
+    st.session_state.books = fetch_books()
+
+# Formulário para filtragem
+def render_filters():
+    # bibliotecas da API
+    all_libraries = do_get("/libraries")
+
+    with st.container(border=True):
         col1, col2 = st.columns([2, 1])
 
         with col1:
-            title = st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra")
+            st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra", key="title")
         
         with col2:
-            select_libraries = st.multiselect("Filtra por biblioteca", options=list_libraries, format_func=lambda b:b["name"])
+            st.multiselect("Filtra por biblioteca", options=all_libraries, format_func= lambda l:l["name"], key="libraries")
 
-        submit = st.form_submit_button("Buscar")
-
-    # Atualiza a lista de livros em uma "variável" de estado
-    if submit:
-        filters = {
-            "title" : title,
-            "library_ids": select_libraries
-        }
-
-        st.session_state.books = fetch_books(filters)
+        with st.container():
+            __, center, __ = st.columns([4,2,4])
+            
+            with center:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    submit = st.button("Buscar",type='primary',width='stretch', on_click=filter_books)
+                
+                with col2:
+                    clear = st.button("Limpar Filtros", type='secondary', width='stretch', on_click=clear_filters)
 
 # Layout de um livro
 def card_book(book:dict, key:int):
@@ -72,6 +89,12 @@ def card_book(book:dict, key:int):
 def render_grid(books, cols_per_row = 5):
     total_books = len(books)
 
+    if total_books > 0:
+        st.subheader(f"Resultado: {total_books} livro(s) encontrados")
+
+    else:
+        st.subheader("Nenhum livro encontrado!")
+
     for i in range(0, total_books, cols_per_row):
         cols = st.columns(cols_per_row)
 
@@ -86,9 +109,7 @@ def render_page():
         st.session_state.books = fetch_books()
 
     header()
-    set_filters()
-    
-    books = do_get("/books")
-    render_grid(books)
+    render_filters()
+    render_grid(st.session_state.books)
 
 render_page()
