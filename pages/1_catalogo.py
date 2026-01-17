@@ -8,28 +8,47 @@ st.set_page_config(page_title="Librion - Catálogo", layout="wide")
 # Exibir o menu superior (que criámos anteriormente)
 componentes.menu_superior()
 
-def cabecalho():
+# Cabeçalho
+def header():
     st.title("Catálogo")
     st.write("Explore o acervo completo da Rede Municipal de Bibliotecas de Crato-CE")
 
-def filtros():
-    col_busca, col_genero, col_biblio = st.columns([2, 1, 1])
+# Busca os livros na API
+def fetch_books(filters = None):
+    if filters:
+        return do_get("/books/search", params=filters)
+    else:
+        return do_get("/books")
 
-    with col_busca:
-        termo = st.text_input("🔍 Buscar por título ou autor...", placeholder="Ex: Machado de Assis")
+# Formulário para filtragem
+def set_filters():
+    # bibliotecas da API
+    list_libraries = do_get("/libraries")
 
-    with col_genero:
-        genero = st.selectbox("Filtro: Género", ["Todos os géneros", "Romance", "Clássico", "Drama"])
+    # Formulário de livros
+    with st.form("search_form"):
+        col1, col2 = st.columns([2, 1])
 
-    with col_biblio:
-        biblioteca = st.selectbox("Filtro: Unidade", ["Todas as bibliotecas", "Centro", "Pinto Madeira", "Seminário"])
+        with col1:
+            title = st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra")
+        
+        with col2:
+            select_libraries = st.multiselect("Filtra por biblioteca", options=list_libraries, format_func=lambda b:b["name"])
 
-    st.write(f"**{12} livros encontrados**") # Exemplo estático, pode ser dinâmico com len()
-    st.write("---")
+        submit = st.form_submit_button("Buscar")
 
+    # Atualiza a lista de livros em uma "variável" de estado
+    if submit:
+        filters = {
+            "title" : title,
+            "library_ids": select_libraries
+        }
+
+        st.session_state.books = fetch_books(filters)
+
+# Layout de um livro
 def card_book(book:dict, key:int):
     with st.container(border=True, height="stretch"):
-
         url_image = book.get("image")
 
         if url_image and not url_image == "(vazio)":
@@ -46,10 +65,11 @@ def card_book(book:dict, key:int):
                  st.warning("Emprestado")
         
         with btn_col2:
-             if st.button("Reservar", key=key):
-                 st.toast(f"Solicitação enviada: {book['titulo']}")
+             if st.button("Reservar", key=key, width='stretch'):
+                 st.toast(f"Solicitação enviada: {book['title']}")
 
-def grid(books, cols_per_row = 4):
+# Renderiza um grid com os livros
+def render_grid(books, cols_per_row = 5):
     total_books = len(books)
 
     for i in range(0, total_books, cols_per_row):
@@ -59,12 +79,16 @@ def grid(books, cols_per_row = 4):
             with cols[j]:
                 card_book(books[i + j], key=i+j)
 
-def main():
-    cabecalho()
+# Renderiza a página
+def render_page():
+    # Criar uma variável de "estado" para a lista de livros
+    if "books" not in st.session_state:
+        st.session_state.books = fetch_books()
 
-    filtros()
+    header()
+    set_filters()
     
-    books = do_get("/books")["books"]
-    grid(books)
+    books = do_get("/books")
+    render_grid(books)
 
-main()
+render_page()
