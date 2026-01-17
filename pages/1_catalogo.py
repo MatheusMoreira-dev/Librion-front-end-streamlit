@@ -1,12 +1,12 @@
 import streamlit as st
-import componentes
+import components
 from utils.api import do_get, do_post
 
 # Configuração da página
 st.set_page_config(page_title="Librion | Catálogo", layout="wide")
 
 # Exibir o menu superior (que criámos anteriormente)
-componentes.menu_superior()
+components.menu_superior()
 
 # Cabeçalho
 def header():
@@ -49,7 +49,7 @@ def render_filters():
             st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra", key="title")
         
         with col2:
-            st.multiselect("Filtra por biblioteca", options=all_libraries, format_func= lambda l:l["name"], key="libraries")
+            st.multiselect("Filtra por biblioteca",placeholder="Selecionar" , options=all_libraries, format_func= lambda l:l["name"], key="libraries")
 
         with st.container():
             __, center, __ = st.columns([4,2,4])
@@ -63,8 +63,26 @@ def render_filters():
                 with col2:
                     clear = st.button("Limpar Filtros", type='secondary', width='stretch', on_click=clear_filters)
 
+@st.dialog("Detalhes", width='small')
+def modal_details(book:dict):
+    image = book.get("image")
+
+    __, center, __ = st.columns([1,2,1])
+
+    with center:
+        if image and image != "(vazio)":
+            st.image(book.get("image"), width='stretch')
+
+    st.header(book.get("title"))
+    st.text(book.get("author"))
+    st.text(book.get("description"))
+
+@st.dialog("Empréstimo", width="medium")
+def modal_loan(book:dict):
+    copies = do_get(f"/books/{book["id"]}/copies")
+
 # Layout de um livro
-def card_book(book:dict, key:int):
+def card_book(book:dict):
     with st.container(border=True, height="stretch"):
         url_image = book.get("image")
 
@@ -76,14 +94,16 @@ def card_book(book:dict, key:int):
         
         btn_col1, btn_col2 = st.columns([1, 1])
         with btn_col1:
-             if True:
-                 st.success("Disponível")
-             else:
-                 st.warning("Emprestado")
+             btn_loan = st.button("Empréstimo", type="primary", width='stretch', key=f"loan_{book["id"]}")
+
+             if btn_loan:
+                modal_loan(book)
         
         with btn_col2:
-             if st.button("Reservar", key=key, width='stretch'):
-                 st.toast(f"Solicitação enviada: {book['title']}")
+             btn_details = st.button("Detalhes", type= "tertiary",  width='stretch', key=f'detail_{book["id"]}') 
+             
+             if btn_details:
+                 modal_details(book)
 
 # Renderiza um grid com os livros
 def render_grid(books, cols_per_row = 5):
@@ -100,7 +120,7 @@ def render_grid(books, cols_per_row = 5):
 
         for j in range(min(cols_per_row, total_books - i)):
             with cols[j]:
-                card_book(books[i + j], key=i+j)
+                card_book(books[i + j])
 
 # Renderiza a página
 def render_page():

@@ -1,12 +1,12 @@
 import streamlit as st
-import componentes
+import components
 import cards
 
 # 1. Configuração da página
 st.set_page_config(page_title="Sobre o Librion", layout="wide")
 
 # 2. Menu Superior
-componentes.menu_superior()
+components.menu_superior()
 
 # --- BANNER DE BOAS-VINDAS ---
 # Usamos um container com borda para destacar a mensagem principal

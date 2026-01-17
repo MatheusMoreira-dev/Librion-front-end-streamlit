@@ -1,17 +1,13 @@
 import streamlit as st
-import componentes
+import components
 
 # Configuração da página para esconder a barra lateral e focar no login
-st.set_page_config(page_title="Librion - Login", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Librion | Login", layout="wide", initial_sidebar_state="collapsed")
 
 # Exibir o menu superior (que criámos anteriormente)
-componentes.menu_superior()
+components.menu_superior()
 
 def validar_login(email, senha):
-    """
-    Simulação do Back-end (FastAPI). 
-    No futuro, esta função fará um pedido HTTP (requests.post).
-    """
     if email == "admin@librion.com" and senha == "123":
         return {"sucesso": True, "perfil": "admin", "nome": "Administrador"}
     elif email == "leitor@email.com" and senha == "123":
@@ -41,8 +37,6 @@ with centro:
         email = st.text_input("E-mail", placeholder="seu@email.com")
         senha = st.text_input("Senha", type="password", placeholder="********")
         
-        st.caption("Esqueci minha senha")
-        
         if st.button("Fazer Login", type="primary", use_container_width=True):
             resultado = validar_login(email, senha)
             
@@ -60,12 +54,26 @@ with centro:
                 
                 # Lógica de redirecionamento:
                 if resultado["perfil"] == "admin":  
-                    st.switch_page("pages/4_Admin_Livros.py") # Vai direto para o cadastro
+                    st.switch_page("pages/4_admin_livros.py") # Vai direto para o cadastro
                 else:
-                    st.switch_page("pages/7_Minha_Conta.py") # Leitor vai para a página dele
+                    st.switch_page("pages/7_minha_conta.py") # Leitor vai para a página dele
             else:
                 st.error(resultado["mensagem"])
 
 # Botão para voltar sem logar
 if st.button("← Voltar para a Início"):
     st.switch_page("Home.py")
+
+def validate_login():
+    pass
+
+def card_banner():
+    with st.container(border=True): # Simula o card azul da imagem
+        st.image("https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000", caption="Bem-vindo ao Librion")
+        st.markdown("### Faça parte da rede integrada de bibliotecas municipais de Crato-CE")
+
+def card_login():
+    pass
+
+def render_page():
+    pass

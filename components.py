@@ -1,5 +1,11 @@
 import streamlit as st
 
+def header_admin():
+    pass
+
+def header_user():
+    pass
+
 def menu_superior():
     """
     Desenha a barra de navegação superior da plataforma Librion com suporte a perfis.

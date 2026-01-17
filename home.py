@@ -1,5 +1,5 @@
 import streamlit as st
-import componentes
+import components
 import cards
 
 # 1. Configuração da página
@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 # 2. Chamar o menu superior
-componentes.menu_superior()
+components.menu_superior()
 
 # --- SEÇÃO HERO (Destaque) ---
 # Usamos colunas para criar um respiro lateral e focar o conteúdo no centro
