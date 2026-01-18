@@ -1,9 +1,9 @@
 import streamlit as st
-import components
+from components import render_header, user_header
 
 # 1. Configuração da página
 st.set_page_config(page_title="Librion - Minha Conta", layout="wide")
-components.menu_superior()
+render_header(user_header)
 
 # Verificação de segurança: Usuário precisa estar logado
 if not st.session_state.get("logado"):

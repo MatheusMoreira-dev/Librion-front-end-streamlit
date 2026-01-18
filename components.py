@@ -1,74 +1,104 @@
 import streamlit as st
 
-def header_admin():
-    pass
+def base_header():
+    cols = st.columns(3)
 
-def header_user():
-    pass
+    if cols[0].button("🏠 Início", use_container_width=True, key="btn_header_home"):
+        st.switch_page("home.py")
+        
+    if cols[1].button("🔍 Catálogo", use_container_width=True, key="btn_header_catalog"):
+        st.switch_page("pages/1_catalogo.py")
+    
+    if cols[2].button("ℹ️ Sobre", use_container_width=True, key="btn_header_about"):
+        st.switch_page("pages/3_sobre.py")
+
+def visitor_header():
+    col1, col2, col3 = st.columns([5,2,1])
+
+    with col1:
+        base_header()
+
+    with col3:
+        if st.button("Login", type="primary", use_container_width=True, key="btn_header_login"):
+            st.switch_page("pages/2_login.py")
+
+def user_header():
+    col1, col2, col3, col4 = st.columns([5,1,1,1])
+
+    with col1:
+        base_header()
+
+    with col3:
+        if st.button("👤 Minha Conta", type="primary", width='stretch'):
+            st.switch_page("pages/7_minha_conta.py")
+
+    with col4:
+        if st.button("Sair", type="tertiary", width="stretch"):
+            pass
+
+def admin_header():
+    cols = st.columns(6)
+
+    with cols[0]:
+        if st.button("📝 Exemplares", use_container_width=True):
+            st.switch_page("pages/4_admin_livros.py")
+        
+    with cols[1]:
+        if st.button("👥 Usuários", use_container_width=True):
+            st.switch_page("pages/5_admin_usuarios.py")
+    
+    with cols[2]:
+        if st.button("🏢 Bibliotecas", use_container_width=True):
+            st.switch_page("pages/6_admin_bibliotecas.py")
+    
+    with cols[4]:
+        if st.button("👤 Minha Conta", type="primary", use_container_width=True):
+            st.switch_page("pages/7_minha_conta.py")
+
+    with cols[5]:
+        if st.button("Sair", type="tertiary", width="stretch"):
+            pass
+
+def render_header(header):
+    with st.container(width='stretch'):
+        col1, col2 = st.columns([1,5])
+        
+        with col1:
+            st.markdown("### 📘 Librion")
+            st.caption("Rede Municipal de Bibliotecas")
+         
+        with col2:
+            header()
+
+def render_cards():
+    f1, f2, f3, f4 = st.columns(4)
+
+    with f1:
+        st.markdown("### 📖", text_alignment="center")
+        st.markdown("**Acervo Completo**", text_alignment="center")
+        st.caption("Acesse milhares de livros de todas as bibliotecas municipais.", text_alignment="center")
+
+    with f2:
+        st.markdown("### 🕸️", text_alignment="center")
+        st.markdown("**Rede Integrada**", text_alignment="center")
+        st.caption("Solicite livros de outras unidades sem sair de casa.", text_alignment="center")
+
+    with f3:
+        st.markdown("### 👥", text_alignment="center")
+        st.markdown("**Comunidade Leitora**", text_alignment="center")
+        st.caption("Faça parte de uma comunidade apaixonada por leitura.", text_alignment="center")
+
+    with f4:
+        st.markdown("### 🏅", text_alignment="center")
+        st.markdown("**Recomendações**", text_alignment="center")
+        st.caption("Receba sugestões personalizadas de leitura baseadas no seu perfil.", text_alignment="center")
 
 def menu_superior():
     """
     Desenha a barra de navegação superior da plataforma Librion com suporte a perfis.
     """
-    # Ajustamos as proporções das colunas para acomodar o botão dinâmico na direita
-    col_logo, col_nav, col_acao = st.columns([2, 5, 1.5])
 
-    with col_logo:
-        st.markdown("### 📘 Librion")
-        st.caption("Rede Municipal de Bibliotecas")
+    render_header()
 
-    with col_nav:
-        # Criamos sub-colunas para os itens de navegação principais
-        # Se estiver logado como leitor, adicionamos uma 5ª coluna para "Minha Conta"
-        is_leitor = st.session_state.get("perfil") == "leitor"
-        n_cols = 5 if is_leitor else 4
-        menu_cols = st.columns(n_cols)
-        
-        if menu_cols[0].button("🏠 Início", use_container_width=True):
-            st.switch_page("home.py")
-        
-        if menu_cols[1].button("🔍 Catálogo", use_container_width=True):
-            st.switch_page("pages/1_catalogo.py")
-            
-        # Novo: Botão Minha Conta aparece apenas para Leitores
-        if is_leitor:
-            if menu_cols[2].button("👤 Minha Conta", type="primary", use_container_width=True):
-                st.switch_page("pages/7_minha_conta.py")
-            idx_sobre, idx_ajuda = 3, 4
-        else:
-            idx_sobre, idx_ajuda = 2, 3
-
-        if menu_cols[idx_sobre].button("ℹ️ Sobre", use_container_width=True):
-            st.switch_page("pages/3_sobre.py")
-            
-        if menu_cols[idx_ajuda].button("❓ Ajuda", use_container_width=True):
-            st.toast("Página de 'Ajuda' em desenvolvimento!")
-
-    with col_acao:
-        # Lógica de Login/Sair
-        if st.session_state.get("logado", False):
-            if st.button("Sair", type="secondary", use_container_width=True):
-                st.session_state.clear() 
-                st.rerun()
-        else:
-            if st.button("Entrar", type="primary", use_container_width=True):
-                st.switch_page("pages/2_login.py")
-
-    # --- MENU DE ADMINISTRADOR ---
-    # Só aparece se o perfil for 'admin'
-    if st.session_state.get("perfil") == "admin":
-        st.write("---") 
-        st.caption("🛠️ PAINEL DE ADMINISTRAÇÃO")
-        admin_col1, admin_col2, admin_col3, _ = st.columns([1.5, 1.5, 1.5, 5])
-        
-        with admin_col1:
-            if st.button("📝 Gerir Livros", use_container_width=True):
-                st.switch_page("pages/4_admin_livros.py")
-        with admin_col2:
-            if st.button("👥 Gerir Usuários", use_container_width=True):
-                st.switch_page("pages/5_admin_usuarios.py")
-        with admin_col3:
-            if st.button("🏢 Bibliotecas", use_container_width=True):
-                st.switch_page("pages/6_admin_bibliotecas.py")
 
     st.divider()

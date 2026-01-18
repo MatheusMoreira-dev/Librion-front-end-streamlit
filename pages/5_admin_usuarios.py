@@ -1,9 +1,9 @@
 import streamlit as st
-import components
+from components import render_header, user_header
 
 # 1. Configuração da página e Menu
 st.set_page_config(page_title="Admin - Usuários", layout="wide")
-components.menu_superior()
+render_header(user_header)
 
 # Verificação de segurança simples (opcional, mas recomendada)
 if not st.session_state.get("logado") or st.session_state.get("perfil") != "admin":

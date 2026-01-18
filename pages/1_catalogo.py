@@ -1,12 +1,10 @@
 import streamlit as st
-import components
+import pandas as pd
+from components import render_header, visitor_header
 from utils.api import do_get, do_post
 
 # Configuração da página
 st.set_page_config(page_title="Librion | Catálogo", layout="wide")
-
-# Exibir o menu superior (que criámos anteriormente)
-components.menu_superior()
 
 # Cabeçalho
 def header():
@@ -16,10 +14,17 @@ def header():
 # Busca os livros na API
 def fetch_books(filters = None):
     if filters:
-        return do_post("/books/search", json=filters)
-    else:
-        return do_get("/books")
+        books, error = do_post("/books/search", json=filters)
 
+    else:
+        books, error = do_get("/books")
+    
+    if error is None:
+        return books
+    
+    else:
+        st.stop()       
+        
 # Busca na session os filtros selecionados
 def filter_books():
     filters = {
@@ -40,29 +45,31 @@ def clear_filters():
 # Formulário para filtragem
 def render_filters():
     # bibliotecas da API
-    all_libraries = do_get("/libraries")
+    all_libraries, error = do_get("/libraries")
 
-    with st.container(border=True):
-        col1, col2 = st.columns([2, 1])
+    if error is None:
+        with st.container(border=True):
+            col1, col2 = st.columns([2, 1])
 
-        with col1:
-            st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra", key="title")
-        
-        with col2:
-            st.multiselect("Filtra por biblioteca",placeholder="Selecionar" , options=all_libraries, format_func= lambda l:l["name"], key="libraries")
-
-        with st.container():
-            __, center, __ = st.columns([4,2,4])
+            with col1:
+                st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra", key="title")
             
-            with center:
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    submit = st.button("Buscar",type='primary',width='stretch', on_click=filter_books)
-                
-                with col2:
-                    clear = st.button("Limpar Filtros", type='secondary', width='stretch', on_click=clear_filters)
+            with col2:
+                st.multiselect("Filtra por biblioteca",placeholder="Selecionar" , options=all_libraries, format_func= lambda l:l["name"], key="libraries")
 
+            with st.container():
+                __, center, __ = st.columns([4,2,4])
+                
+                with center:
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        submit = st.button("Buscar",type='primary',width='stretch', on_click=filter_books)
+                    
+                    with col2:
+                        clear = st.button("Limpar Filtros", type='secondary', width='stretch', on_click=clear_filters)
+
+# Modal com detalhes de um livro
 @st.dialog("Detalhes", width='small')
 def modal_details(book:dict):
     image = book.get("image")
@@ -77,9 +84,29 @@ def modal_details(book:dict):
     st.text(book.get("author"))
     st.text(book.get("description"))
 
+# Modal com o nome de todas as bibliotecas que tem o livro disponível
 @st.dialog("Empréstimo", width="medium")
 def modal_loan(book:dict):
-    copies = do_get(f"/books/{book["id"]}/copies")
+    copies, error = do_get(f"/books/{book["id"]}/copies")
+
+    if error is None:
+        for i in range(len(copies)):
+            col1, col2, col3 = st.columns([3,2,1])
+            
+            copy = copies[i]
+            is_available = copy["quantity_available"] > 0
+            with col1:
+                st.subheader(copy["library"]["name"], text_alignment="left")
+        
+            with col2:
+                if is_available:
+                    st.success("Disponível", width='stretch')
+                else:
+                    st.error("Indisponível", width='stretch')
+            
+            with col3:
+                if is_available:
+                    st.button("Solicitar", key=(copy["id_book"]) * i, width='stretch', type='primary')
 
 # Layout de um livro
 def card_book(book:dict):
@@ -128,6 +155,7 @@ def render_page():
     if "books" not in st.session_state:
         st.session_state.books = fetch_books()
 
+    render_header(visitor_header)
     header()
     render_filters()
     render_grid(st.session_state.books)
