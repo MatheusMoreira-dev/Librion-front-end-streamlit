@@ -5,25 +5,28 @@ from utils import librion_api
 # Configuração da página para esconder a barra lateral e focar no login
 st.set_page_config(page_title="Librion | Login", layout="wide", initial_sidebar_state="collapsed")
 
-# Exibir o menu superior (que criámos anteriormente)
-visitor_header()
+def get_acess_token(email, password):
+    response = librion_api("POST", "/auth/login", json={"email": email, "password": password})
 
-def validate_login(email, password):
-    validate, error = librion_api("POST", "/auth/login", json={"email": email, "password": password})
-
-    if error is None and validate.get("access_token") is not None:
-        st.session_state.acess = validate
-        return validate
+    if response["success"]:
+        st.session_state.acess = response["data"]
+        return response["data"]
     
-    return False
+    return None
 
-def validar_login(email, senha):
-    if email == "admin@librion.com" and senha == "123":
-        return {"sucesso": True, "perfil": "admin", "nome": "Administrador"}
-    elif email == "leitor@email.com" and senha == "123":
-        return {"sucesso": True, "perfil": "leitor", "nome": "João Leitor"}
+def get_auth_user(token):
+    headers = {}
+    headers["Authorization"] =  f"Bearer {token}"
+
+    response = librion_api("")
+
+    pass
+
+def redirect_page(user):
+    if user["admin"]:
+        st.switch_page("pages/4_admin_livros.py")
     else:
-        return {"sucesso": False, "mensagem": "E-mail ou senha incorretos."}
+        st.switch_page("pages/7_minha_conta.py")
 
 def card_banner():
     with st.container(border=True): # Simula o card azul da imagem
@@ -37,35 +40,28 @@ def card_login():
     email = st.text_input("E-mail", placeholder="seu@email.com")
     senha = st.text_input("Senha", type="password", placeholder="********")
     
-    if st.button("Fazer Login", type="primary", width='stretch'):
-        if email == "" or senha == "":
+    btn_login = st.button("Fazer Login", type="primary", width='stretch')
+
+    if btn_login:
+        if not email.strip() or not senha.strip():
             st.error("Preencha todos os campos!")
             st.stop()
-            return
 
-        is_valid = validate_login(email, senha)
-        
-        # if not is_valid:
-        #     st.error("Erro no login. Tente novamente!")
-        #     st.stop()
-        #     return
-        
-        # user, error = do_get("/libraries/me")
+        user = {
+            "name": "Matheus",
+            "email": "matheus@gmail.com",
+            "admin": False
+        }
 
-        # if error != None:
-        #     user = do_get("readers/me")
-        #     st.switch_page("pages/7_minha_conta.py")
-        #     st.session_state.user = user
-        #     return
-        
-        st.switch_page("pages/4_admin_livros.py")
         st.session_state.user = user
+        redirect_page(user)
+        # token = get_acess_token(email, senha)
 
-# --- INTERFACE ---
-# Criamos margens nas laterais para centralizar o conteúdo [Coluna Vazia, Conteúdo, Coluna Vazia]
+        # if token:
 
 def render_page():
-    
+    visitor_header()
+
     _, center, _ = st.columns([1, 4, 1])
 
     with center:
@@ -76,3 +72,5 @@ def render_page():
 
         with col_form:
             card_login()
+
+render_page()

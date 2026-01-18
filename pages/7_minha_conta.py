@@ -6,25 +6,10 @@ st.set_page_config(page_title="Librion - Minha Conta", layout="wide")
 user_header()
 
 # Verificação de segurança: Usuário precisa estar logado
-if not st.session_state.get("logado"):
+if not st.session_state.get("user"):
     st.error("Por favor, faça login para acessar esta página.")
     st.button("Ir para Login", on_click=lambda: st.switch_page("pages/2_Login.py"))
     st.stop()
-
-# --- LÓGICA DE TROCA DE SENHA OBRIGATÓRIA ---
-if st.session_state.get("primeiro_acesso", True):
-    st.warning("⚠️ **Segurança:** Detectamos que este é seu primeiro acesso. Altere sua senha para continuar.")
-    with st.container(border=True):
-        nova_senha = st.text_input("Nova Senha", type="password")
-        confirma = st.text_input("Confirmar Nova Senha", type="password")
-        if st.button("Salvar e Acessar Conta", type="primary"):
-            if nova_senha == confirma and len(nova_senha) >= 6:
-                st.session_state.primeiro_acesso = False
-                st.success("Senha alterada! Carregando seu perfil...")
-                st.rerun()
-            else:
-                st.error("As senhas não coincidem ou são muito curtas.")
-    st.stop() # Interrompe a página aqui até a senha ser trocada
 
 # --- PERFIL DO USUÁRIO ---
 col_av, col_info = st.columns([1, 8])
