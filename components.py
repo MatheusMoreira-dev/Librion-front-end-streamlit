@@ -71,16 +71,18 @@ def admin_header():
         if st.button("Sair", type="tertiary", width="stretch"):
             pass
 
-def render_header(header):
-    with st.container(width='stretch'):
-        col1, col2 = st.columns([1,5])
-        
-        with col1:
-            st.markdown("### 📘 Librion")
-            st.caption("Rede Municipal de Bibliotecas")
-         
-        with col2:
-            header()
+# Renderiza o cabeçalho
+def render_header():
+    user = st.session_state.get("user")
+    
+    if not user:
+        visitor_header()
+    
+    elif user["admin"]:
+        admin_header()
+    
+    else:
+        user_header()
 
 def render_cards():
     f1, f2, f3, f4 = st.columns(4)
@@ -104,13 +106,3 @@ def render_cards():
         st.markdown("### 🏅", text_alignment="center")
         st.markdown("**Recomendações**", text_alignment="center")
         st.caption("Receba sugestões personalizadas de leitura baseadas no seu perfil.", text_alignment="center")
-
-def menu_superior():
-    """
-    Desenha a barra de navegação superior da plataforma Librion com suporte a perfis.
-    """
-
-    render_header()
-
-
-    st.divider()

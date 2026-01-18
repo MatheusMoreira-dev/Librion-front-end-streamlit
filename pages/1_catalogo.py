@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from components import visitor_header
+from components import render_header
 from utils.api import librion_api
 
 # Configuração da página
@@ -126,9 +126,12 @@ def card_book(book:dict):
         
         btn_col1, btn_col2 = st.columns([1, 1])
         with btn_col1:
-             btn_loan = st.button("Empréstimo", type="primary", width='stretch', key=f"loan_{book["id"]}")
+            user = st.session_state.get("user")
+            disable_button = True if not user or user["admin"] else False
 
-             if btn_loan:
+            btn_loan = st.button("Empréstimo", type="primary", width='stretch', key=f"loan_{book["id"]}", disabled=disable_button)
+
+            if btn_loan:
                 modal_loan(book)
         
         with btn_col2:
@@ -156,11 +159,11 @@ def render_grid(books, cols_per_row = 5):
 
 # Renderiza a página
 def render_page():
-    # Criar uma variável de "estado" para a lista de livros
+    # Criar uma variável de "estado" para a lista de livros    
     if "books" not in st.session_state:
         st.session_state.books = fetch_books()
 
-    visitor_header()
+    render_header()
     
     st.title("Catálogo")
     st.write("Explore o acervo completo da Rede Municipal de Bibliotecas de Crato-CE")
