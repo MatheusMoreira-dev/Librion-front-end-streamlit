@@ -42,8 +42,6 @@ def librion_api(method: str,route: str, *,params=None,json=None,data=None,header
             "status": None
         }
 
-
-
 def do_get(route:str|None, params:dict|None = None, headers:dict|None = None):
     try:
         enpoint = BASE_URL + route
@@ -52,14 +50,14 @@ def do_get(route:str|None, params:dict|None = None, headers:dict|None = None):
         # Sucesso
         if 200 <= response.status_code < 300:
             return {
-                "sucess": True,
+                "success": True,
                 "data": response.json(),
                 "status": response.status_code
             }
 
         # Erro na API
         return {
-            "sucess": False,
+            "success": False,
             "data": response.json(),
             "status": response.status_code
         }

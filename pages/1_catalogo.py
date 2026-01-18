@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from components import visitor_header
-from utils.api import do_get, do_post
+from utils.api import librion_api
 
 # Configuração da página
 st.set_page_config(page_title="Librion | Catálogo", layout="wide")
@@ -9,16 +9,16 @@ st.set_page_config(page_title="Librion | Catálogo", layout="wide")
 # Busca os livros na API
 def fetch_books(filters = None):
     if filters:
-        books, error = do_post("/books/search", json=filters)
+        response = librion_api("POST", "/books/search", json=filters)
 
     else:
-        books, error = do_get("/books")
+        response = librion_api("GET", "/books")
+
+    if response["success"]:
+        return response["data"]
     
-    if error == None:
-        return books
-    
-    else:
-        st.stop()       
+    st.error("Erro na requisição dos livros")
+    st.stop()       
         
 # Busca na session os filtros selecionados
 def filter_books():
@@ -40,9 +40,11 @@ def clear_filters():
 # Formulário para filtragem
 def render_filters():
     # bibliotecas da API
-    all_libraries, error = do_get("/libraries")
+    response = librion_api("GET", "/libraries")
 
-    if error is None:
+    if response["success"]:
+        all_libraries = response["data"]
+
         with st.container(border=True):
             col1, col2 = st.columns([2, 1])
 
@@ -63,6 +65,9 @@ def render_filters():
                     
                     with col2:
                         clear = st.button("Limpar Filtros", type='secondary', width='stretch', on_click=clear_filters)
+    else:
+        st.error("Erro na requisição das bibliotecas")
+        st.stop()
 
 # Modal com detalhes de um livro
 @st.dialog("Detalhes", width='small')
@@ -82,9 +87,11 @@ def modal_details(book:dict):
 # Modal com o nome de todas as bibliotecas que tem o livro disponível
 @st.dialog("Empréstimo", width="medium")
 def modal_loan(book:dict):
-    copies, error = do_get(f"/books/{book["id"]}/copies")
+    response = librion_api("GET", f"/books/{book["id"]}/copies")
 
-    if error is None:
+    if response["success"]:
+        copies = response["data"]
+
         for i in range(len(copies)):
             col1, col2, col3 = st.columns([3,2,1])
             
@@ -102,6 +109,9 @@ def modal_loan(book:dict):
             with col3:
                 if is_available:
                     st.button("Solicitar", key=(copy["id_book"]) * i, width='stretch', type='primary')
+    else:
+        st.error("Errro na requisição das cópias")
+        st.stop()
 
 # Layout de um livro
 def card_book(book:dict):
