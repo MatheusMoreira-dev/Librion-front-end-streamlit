@@ -1,5 +1,5 @@
 import streamlit as st
-from components import render_header, admin_header
+from components import admin_header
 
 # Verificação de segurança
 if not st.session_state.get("logado") or st.session_state.get("perfil") != "admin":
@@ -9,7 +9,7 @@ if not st.session_state.get("logado") or st.session_state.get("perfil") != "admi
 
 
 st.set_page_config(page_title="Admin - Cadastrar Livro", layout="wide")
-render_header(admin_header)
+admin_header()
 
 st.title("📑 Gestão de Acervo")
 st.subheader("Cadastrar Novo Livro")

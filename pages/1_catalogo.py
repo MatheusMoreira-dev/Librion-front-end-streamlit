@@ -1,15 +1,10 @@
 import streamlit as st
 import pandas as pd
-from components import render_header, visitor_header
+from components import visitor_header
 from utils.api import do_get, do_post
 
 # Configuração da página
 st.set_page_config(page_title="Librion | Catálogo", layout="wide")
-
-# Cabeçalho
-def header():
-    st.title("Catálogo")
-    st.write("Explore o acervo completo da Rede Municipal de Bibliotecas de Crato-CE")
 
 # Busca os livros na API
 def fetch_books(filters = None):
@@ -19,7 +14,7 @@ def fetch_books(filters = None):
     else:
         books, error = do_get("/books")
     
-    if error is None:
+    if error == None:
         return books
     
     else:
@@ -155,8 +150,11 @@ def render_page():
     if "books" not in st.session_state:
         st.session_state.books = fetch_books()
 
-    render_header(visitor_header)
-    header()
+    visitor_header()
+    
+    st.title("Catálogo")
+    st.write("Explore o acervo completo da Rede Municipal de Bibliotecas de Crato-CE")
+    
     render_filters()
     render_grid(st.session_state.books)
 

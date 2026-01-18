@@ -1,17 +1,23 @@
 import streamlit as st
 
+# Cabeçalho Base
 def base_header():
-    cols = st.columns(3)
+    cols = st.columns(4)
 
-    if cols[0].button("🏠 Início", use_container_width=True, key="btn_header_home"):
+    with cols[0]:
+        st.markdown("### 📘 Librion")
+        st.caption("Rede Municipal de Bibliotecas")
+
+    if cols[1].button("🏠 Início", use_container_width=True, key="btn_header_home"):
         st.switch_page("home.py")
         
-    if cols[1].button("🔍 Catálogo", use_container_width=True, key="btn_header_catalog"):
+    if cols[2].button("🔍 Catálogo", use_container_width=True, key="btn_header_catalog"):
         st.switch_page("pages/1_catalogo.py")
     
-    if cols[2].button("ℹ️ Sobre", use_container_width=True, key="btn_header_about"):
+    if cols[3].button("ℹ️ Sobre", use_container_width=True, key="btn_header_about"):
         st.switch_page("pages/3_sobre.py")
 
+# Cabeçalho do visitante
 def visitor_header():
     col1, col2, col3 = st.columns([5,2,1])
 
@@ -22,6 +28,7 @@ def visitor_header():
         if st.button("Login", type="primary", use_container_width=True, key="btn_header_login"):
             st.switch_page("pages/2_login.py")
 
+# Cabeçalho do usuário
 def user_header():
     col1, col2, col3, col4 = st.columns([5,1,1,1])
 
@@ -36,26 +43,31 @@ def user_header():
         if st.button("Sair", type="tertiary", width="stretch"):
             pass
 
+# Cabeçalho de admin
 def admin_header():
-    cols = st.columns(6)
+    cols = st.columns(7)
 
     with cols[0]:
+        st.markdown("### 📘 Librion")
+        st.caption("Rede Municipal de Bibliotecas")
+
+    with cols[1]:
         if st.button("📝 Exemplares", use_container_width=True):
             st.switch_page("pages/4_admin_livros.py")
         
-    with cols[1]:
+    with cols[2]:
         if st.button("👥 Usuários", use_container_width=True):
             st.switch_page("pages/5_admin_usuarios.py")
     
-    with cols[2]:
+    with cols[3]:
         if st.button("🏢 Bibliotecas", use_container_width=True):
             st.switch_page("pages/6_admin_bibliotecas.py")
     
-    with cols[4]:
+    with cols[5]:
         if st.button("👤 Minha Conta", type="primary", use_container_width=True):
             st.switch_page("pages/7_minha_conta.py")
 
-    with cols[5]:
+    with cols[6]:
         if st.button("Sair", type="tertiary", width="stretch"):
             pass
 

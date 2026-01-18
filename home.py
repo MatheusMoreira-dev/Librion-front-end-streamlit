@@ -1,5 +1,5 @@
 import streamlit as st
-from components import visitor_header, render_header, render_cards
+from components import visitor_header, render_cards
 
 # Configuração da página
 st.set_page_config(
@@ -17,7 +17,7 @@ def render_highlights():
     render_cards()
 
 def render_page():
-    render_header(visitor_header)
+    visitor_header()
     render_highlights()
 
 render_page()

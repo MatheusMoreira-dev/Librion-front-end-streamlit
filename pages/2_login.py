@@ -1,12 +1,12 @@
 import streamlit as st
-from components import render_header, visitor_header
+from components import visitor_header
 from utils import do_get, do_post
 
 # Configuração da página para esconder a barra lateral e focar no login
 st.set_page_config(page_title="Librion | Login", layout="wide", initial_sidebar_state="collapsed")
 
 # Exibir o menu superior (que criámos anteriormente)
-render_header(visitor_header)
+visitor_header()
 
 def validate_login(email, password):
     validate, error = do_post("/auth/login", json={"email": email, "password": password})
@@ -38,7 +38,7 @@ def card_login():
     senha = st.text_input("Senha", type="password", placeholder="********")
     
     if st.button("Fazer Login", type="primary", width='stretch'):
-        if email is "" or senha is "":
+        if email == "" or senha == "":
             st.error("Preencha todos os campos!")
             st.stop()
             return
@@ -63,16 +63,16 @@ def card_login():
 
 # --- INTERFACE ---
 # Criamos margens nas laterais para centralizar o conteúdo [Coluna Vazia, Conteúdo, Coluna Vazia]
-_, center, _ = st.columns([1, 4, 1])
-
-with center:
-    col_img, col_form = st.columns([1, 1], gap="large")
-
-    with col_img:
-        card_banner()
-
-    with col_form:
-        card_login()
 
 def render_page():
-    pass
+    
+    _, center, _ = st.columns([1, 4, 1])
+
+    with center:
+        col_img, col_form = st.columns([1, 1], gap="large")
+
+        with col_img:
+            card_banner()
+
+        with col_form:
+            card_login()
