@@ -1,41 +1,23 @@
 import streamlit as st
-import componentes
-import cards
+from components import render_cards, render_header
 
-# 1. Configuração da página
+# Configuração da página
 st.set_page_config(
     page_title="Librion - Conectando Bibliotecas", 
     layout="wide", 
     initial_sidebar_state="collapsed"
 )
 
-# 2. Chamar o menu superior
-componentes.menu_superior()
+def render_highlights():
+    with st.container(width='stretch'):
+        st.markdown("# Conectando todas as bibliotecas em um só lugar")
+        st.markdown("##### Acesse o acervo completo da Rede Municipal de Bibliotecas de Crato-CE. Empreste livros de qualquer unidade com facilidade.")
 
-# --- SEÇÃO HERO (Destaque) ---
-# Usamos colunas para criar um respiro lateral e focar o conteúdo no centro
-_, col_hero, _ = st.columns([1, 8, 1])
+    st.markdown("##")
+    render_cards()
 
-with col_hero:
-    # Título e Subtítulo impactantes
-    st.markdown("# Conectando todas as bibliotecas em um só lugar")
-    st.markdown("### Acesse o acervo completo da Rede Municipal de Bibliotecas de Crato-CE. Empreste livros de qualquer unidade com facilidade.")
-    
-    # Botões de Ação
-    c1, c2, _ = st.columns([1.5, 1.5, 7])
-    with c1:
-        if st.button("Acessar minha conta", type="primary", use_container_width=True):
-            st.switch_page("pages/2_Login.py")
-    with c2:
-        if st.button("Explorar acervo", use_container_width=True):
-            st.switch_page("pages/1_Catalogo.py")
-    
-    # Imagem de destaque (podes trocar pela imagem real do teu projeto)
-    st.image("https://images.unsplash.com/photo-1481627581964-f141f00567b7?q=80&w=2000", use_container_width=True)
+def render_page():
+    render_header()
+    render_highlights()
 
-st.write("##") # Espaçamento
-st.divider()
-
-# --- SEÇÃO DE RECURSOS (Os 4 cards inferiores) ---
-st.write("##")
-cards.exibir_cards()
+render_page()

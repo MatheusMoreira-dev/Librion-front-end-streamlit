@@ -1,70 +1,174 @@
 import streamlit as st
-import componentes # Importamos o teu menu superior
-import dados        # Importamos a tua lista de livros
+import pandas as pd
+from components import render_header
+from utils.api import librion_api
 
 # Configuração da página
-st.set_page_config(page_title="Librion - Catálogo", layout="wide")
+st.set_page_config(page_title="Librion | Catálogo", layout="wide")
 
-# Exibir o menu superior (que criámos anteriormente)
-componentes.menu_superior()
+# Busca os livros na API
+def fetch_books(filters = None):
+    if filters:
+        response = librion_api("POST", "/books/search", json=filters)
 
-st.title("Catálogo Público")
-st.write("Explore o acervo completo da Rede Municipal de Bibliotecas de Crato-CE")
+    else:
+        response = librion_api("GET", "/books")
 
-# --- SEÇÃO DE FILTROS ---
-# Criamos uma linha com 3 colunas para a pesquisa e os selects
-col_busca, col_genero, col_biblio = st.columns([2, 1, 1])
+    if response["success"]:
+        return response["data"]
+    
+    st.error("Erro na requisição dos livros")
+    st.stop()       
+        
+# Busca na session os filtros selecionados
+def filter_books():
+    filters = {
+        "title" : st.session_state.title if not "" else None,
+        "library_ids": list(map(lambda l:int(l["id"]), st.session_state.libraries))
+    }
 
-with col_busca:
-    termo = st.text_input("🔍 Buscar por título ou autor...", placeholder="Ex: Machado de Assis")
+    # Busca na API os livros filtrados e salva em uma "variável" de estado "books"
+    st.session_state.books = fetch_books(filters)
 
-with col_genero:
-    genero = st.selectbox("Filtro: Género", ["Todos os géneros", "Romance", "Clássico", "Drama"])
+# Limpa os filtros a atualiza o grid
+def clear_filters():
+    st.session_state.title = None
+    st.session_state.libraries = []
 
-with col_biblio:
-    biblioteca = st.selectbox("Filtro: Unidade", ["Todas as bibliotecas", "Centro", "Pinto Madeira", "Seminário"])
+    st.session_state.books = fetch_books()
 
-st.write(f"**{12} livros encontrados**") # Exemplo estático, pode ser dinâmico com len()
-st.write("---")
+# Formulário para filtragem
+def render_filters():
+    # bibliotecas da API
+    response = librion_api("GET", "/libraries")
 
-# --- EXIBIÇÃO EM GRELHA (CARDS) ---
-# Vamos simular uma lista de livros (no futuro virá do dados.py ou FastAPI)
-lista_livros = [
-    {"titulo": "Dom Casmurro", "autor": "Machado de Assis", "local": "Bib. Central", "status": "Disponível"},
-    {"titulo": "Grande Sertão", "autor": "Guimarães Rosa", "local": "Bib. Pinto Madeira", "status": "Disponível"},
-    {"titulo": "Capitães da Areia", "autor": "Jorge Amado", "local": "Bib. Seminário", "status": "Emprestado"},
-    {"titulo": "A Hora da Estrela", "autor": "Clarice Lispector", "local": "Bib. Central", "status": "Disponível"},
-    {"titulo": "Memórias Póstumas", "autor": "Machado de Assis", "local": "Bib. Centro", "status": "Disponível"},
-    {"titulo": "O Cortiço", "autor": "Aluísio Azevedo", "local": "Bib. Muriti", "status": "Disponível"},
-]
+    if response["success"]:
+        all_libraries = response["data"]
 
-# Lógica para criar a grelha (3 colunas por linha)
-rows = len(lista_livros) // 3 + (1 if len(lista_livros) % 3 > 0 else 0)
+        with st.container(border=True):
+            col1, col2 = st.columns([2, 1])
 
-for i in range(rows):
-    cols = st.columns(3) # Cria 3 colunas para esta linha
-    for j in range(3):
-        index = i * 3 + j
-        if index < len(lista_livros):
-            livro = lista_livros[index]
+            with col1:
+                st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra", key="title")
+            
+            with col2:
+                st.multiselect("Filtra por biblioteca",placeholder="Selecionar" , options=all_libraries, format_func= lambda l:l["name"], key="libraries")
+
+            with st.container():
+                __, center, __ = st.columns([4,2,4])
+                
+                with center:
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        submit = st.button("Buscar",type='primary',width='stretch', on_click=filter_books)
+                    
+                    with col2:
+                        clear = st.button("Limpar Filtros", type='secondary', width='stretch', on_click=clear_filters)
+    else:
+        st.error("Erro na requisição das bibliotecas")
+        st.stop()
+
+# Modal com detalhes de um livro
+@st.dialog("Detalhes", width='small')
+def modal_details(book:dict):
+    image = book.get("image")
+
+    __, center, __ = st.columns([1,2,1])
+
+    with center:
+        if image and image != "(vazio)":
+            st.image(book.get("image"), width='stretch')
+
+    st.header(book.get("title"))
+    st.text(book.get("author"))
+    st.text(book.get("description"))
+
+# Modal com o nome de todas as bibliotecas que tem o livro disponível
+@st.dialog("Empréstimo", width="medium")
+def modal_loan(book:dict):
+    response = librion_api("GET", f"/books/{book["id"]}/copies")
+
+    if response["success"]:
+        copies = response["data"]
+
+        for i in range(len(copies)):
+            col1, col2, col3 = st.columns([3,2,1])
+            
+            copy = copies[i]
+            is_available = copy["quantity_available"] > 0
+            with col1:
+                st.subheader(copy["library"]["name"], text_alignment="left")
+        
+            with col2:
+                if is_available:
+                    st.success("Disponível", width='stretch')
+                else:
+                    st.error("Indisponível", width='stretch')
+            
+            with col3:
+                if is_available:
+                    st.button("Solicitar", key=(copy["id_book"]) * i, width='stretch', type='primary')
+    else:
+        st.error("Errro na requisição das cópias")
+        st.stop()
+
+# Layout de um livro
+def card_book(book:dict):
+    with st.container(border=True, height="stretch"):
+        url_image = book.get("image")
+
+        if url_image and not url_image == "(vazio)":
+            st.image(url_image, width='stretch')
+    
+        st.text(book["title"])
+        st.caption(f"{book['author']}")
+        
+        btn_col1, btn_col2 = st.columns([1, 1])
+        with btn_col1:
+            user = st.session_state.get("user")
+            disable_button = True if not user or user["admin"] else False
+
+            btn_loan = st.button("Empréstimo", type="primary", width='stretch', key=f"loan_{book["id"]}", disabled=disable_button)
+
+            if btn_loan:
+                modal_loan(book)
+        
+        with btn_col2:
+             btn_details = st.button("Detalhes", type= "tertiary",  width='stretch', key=f'detail_{book["id"]}') 
+             
+             if btn_details:
+                 modal_details(book)
+
+# Renderiza um grid com os livros
+def render_grid(books, cols_per_row = 5):
+    total_books = len(books)
+
+    if total_books > 0:
+        st.subheader(f"Resultado: {total_books} livro(s) encontrados")
+
+    else:
+        st.subheader("Nenhum livro encontrado!")
+
+    for i in range(0, total_books, cols_per_row):
+        cols = st.columns(cols_per_row)
+
+        for j in range(min(cols_per_row, total_books - i)):
             with cols[j]:
-                # Criamos o "Card" usando um container com borda
-                with st.container(border=True):
-                    # Espaço da Imagem (Placeholder)
-                    st.image("https://via.placeholder.com/150x200?text=Livro", use_container_width=True)
-                    
-                    st.subheader(livro["titulo"])
-                    st.caption(f"{livro['autor']}")
-                    st.write(f"📍 {livro['local']}")
-                    
-                    # Linha de botões e status
-                    btn_col1, btn_col2 = st.columns([1, 1])
-                    with btn_col1:
-                        if livro["status"] == "Disponível":
-                            st.success("Disponível")
-                        else:
-                            st.warning("Emprestado")
-                    
-                    with btn_col2:
-                        if st.button("Reservar", key=f"res_{index}"):
-                            st.toast(f"Solicitação enviada: {livro['titulo']}")
+                card_book(books[i + j])
+
+# Renderiza a página
+def render_page():
+    # Criar uma variável de "estado" para a lista de livros    
+    if "books" not in st.session_state:
+        st.session_state.books = fetch_books()
+
+    render_header()
+    
+    st.title("Catálogo")
+    st.write("Explore o acervo completo da Rede Municipal de Bibliotecas de Crato-CE")
+    
+    render_filters()
+    render_grid(st.session_state.books)
+
+render_page()

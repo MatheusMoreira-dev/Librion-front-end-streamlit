@@ -1,9 +1,9 @@
 import streamlit as st
-import componentes
+from components import admin_header
 
 # 1. Configuração da página
 st.set_page_config(page_title="Admin - Unidades", layout="wide")
-componentes.menu_superior()
+admin_header()
 
 # Verificação de segurança: Apenas administradores
 if not st.session_state.get("logado") or st.session_state.get("perfil") != "admin":
