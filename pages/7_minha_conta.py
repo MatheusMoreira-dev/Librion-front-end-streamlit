@@ -1,77 +1,84 @@
 import streamlit as st
 from components import user_header
+from datetime import datetime
 
 # 1. Configuração da página
 st.set_page_config(page_title="Librion - Minha Conta", layout="wide")
-user_header()
 
-# Verificação de segurança: Usuário precisa estar logado
-if not st.session_state.get("user"):
-    st.error("Por favor, faça login para acessar esta página.")
-    st.button("Ir para Login", on_click=lambda: st.switch_page("pages/2_Login.py"))
-    st.stop()
+def check_login():
+    if not st.session_state.get("user"):
+        st.error("Por favor, faça login para acessar esta página.")
+        st.button("Ir para Login", on_click=lambda: st.switch_page("pages/2_Login.py"))
+        st.stop()
 
-# --- PERFIL DO USUÁRIO ---
-col_av, col_info = st.columns([1, 8])
-with col_av:
-    # Simulação de Avatar com as iniciais
-    st.markdown(f"<div style='background-color:#456e7d; color:white; border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; font-size:30px;'>{st.session_state.nome_usuario[0]}</div>", unsafe_allow_html=True)
+def profile():
+    col_av, col_info = st.columns([1, 8])
+    with col_av:
+        st.markdown(f"<div style='background-color:#456e7d; color:white; border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; font-size:30px;'>{st.session_state.user["name"][0:2]}</div>", unsafe_allow_html=True)
 
-with col_info:
-    st.subheader(st.session_state.get("nome_usuario", "Usuário"))
-    st.caption("📍 Biblioteca de Referência: Biblioteca Central Raimundo Alencar Pinto")
+    with col_info:
+        st.subheader(st.session_state.user.get("name", "Usuário"))
+        st.caption("📍 Biblioteca de Referência: Biblioteca Central Raimundo Alencar Pinto")
 
-st.write("##")
+    st.write("##")
 
-# --- CARDS DE MÉTRICAS ---
-m1, m2, m3 = st.columns(3)
-with m1:
+def metrics_cards():
+    # --- CARDS DE MÉTRICAS ---
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        with st.container(border=True):
+            st.write("📖 **Empréstimos Ativos**")
+            st.title("2")
+            st.progress(2/5, text="2 de 5 permitidos")
+
+    with m2:
+        with st.container(border=True):
+            st.write("⭐ **Livros Lidos**")
+            st.title("28")
+            st.caption("neste ano")
+
+    with m3:
+        with st.container(border=True):
+            st.write("⏰ **Prazo Próximo**")
+            st.title("5")
+            st.caption("dias para devolução")
+
+    st.write("##")
+
+def book_loan(loan):
     with st.container(border=True):
-        st.write("📖 **Empréstimos Ativos**")
-        st.title("2")
-        st.progress(2/5, text="2 de 5 permitidos")
+        book = loan["copy"]
+        c1, c2 = st.columns([3, 1])
 
-with m2:
-    with st.container(border=True):
-        st.write("⭐ **Livros Lidos**")
-        st.title("28")
-        st.caption("neste ano")
+        with c1:
+            st.markdown(f"**{book["name"]}**")
+            st.caption(f"{book["author"]}")
+            st.write(f"📅 Empréstimo: {loan["request_date"]} | Devolução: {loan["return_date"]}")
+        with c2:
+            st.info(f"{loan["status"]}")
 
-with m3:
-    with st.container(border=True):
-        st.write("⏰ **Prazo Próximo**")
-        st.title("5")
-        st.caption("dias para devolução")
-
-st.write("##")
-
-# --- NAVEGAÇÃO INTERNA (TABS) ---
-tab_acervo, tab_emprestimos, tab_reco = st.tabs(["📚 Meu Acervo", "📑 Meus Empréstimos", "✨ Recomendações"])
-
-with tab_emprestimos:
+def render_loans(loans):
     st.markdown("### Histórico de Empréstimos")
-    st.write("Acompanhe seus empréstimos ativos e histórico.")
-    
-    # Exemplo de livro ativo
-    with st.container(border=True):
-        c1, c2, c3 = st.columns([3, 1, 1])
-        with c1:
-            st.markdown("**Dom Casmurro**")
-            st.caption("Machado de Assis")
-            st.write("📅 Empréstimo: 2025-10-01 | Devolução: 2025-10-15")
-        with c2:
-            st.info("Ativo")
-        with c3:
-            st.button("Renovar", key="renovar_1")
 
-    # Exemplo de livro atrasado
-    with st.container(border=True):
-        c1, c2, c3 = st.columns([3, 1, 1])
-        with c1:
-            st.markdown("**A Moreninha**")
-            st.caption("Joaquim Manuel de Macedo")
-            st.write("📅 Empréstimo: 2025-09-20 | Devolução: 2025-10-04")
-        with c2:
-            st.error("Atrasado")
-        with c3:
-            st.button("Renovar", key="renovar_2", disabled=True)
+    for loan in loans:
+        book_loan(loan)
+
+def render_page():
+    loans = [
+        {   
+            "copy": {
+                "name": "Machado de Assis",
+                "author": "algo"
+            },
+            "request_date": datetime.now(),
+            "return_date": datetime.now(),
+            "status": "ativo"
+        }
+    ]
+
+
+    user_header()
+    profile()
+    render_loans(loans)
+
+render_page()
