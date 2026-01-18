@@ -1,6 +1,6 @@
 import streamlit as st
 from components import visitor_header
-from utils import do_get, do_post
+from utils import librion_api
 
 # Configuração da página para esconder a barra lateral e focar no login
 st.set_page_config(page_title="Librion | Login", layout="wide", initial_sidebar_state="collapsed")
@@ -9,7 +9,7 @@ st.set_page_config(page_title="Librion | Login", layout="wide", initial_sidebar_
 visitor_header()
 
 def validate_login(email, password):
-    validate, error = do_post("/auth/login", json={"email": email, "password": password})
+    validate, error = librion_api("POST", "/auth/login", json={"email": email, "password": password})
 
     if error is None and validate.get("access_token") is not None:
         st.session_state.acess = validate
@@ -45,18 +45,18 @@ def card_login():
 
         is_valid = validate_login(email, senha)
         
-        if not is_valid:
-            st.error("Erro no login. Tente novamente!")
-            st.stop()
-            return
+        # if not is_valid:
+        #     st.error("Erro no login. Tente novamente!")
+        #     st.stop()
+        #     return
         
-        user, error = do_get("/libraries/me")
+        # user, error = do_get("/libraries/me")
 
-        if error != None:
-            user = do_get("readers/me")
-            st.switch_page("pages/7_minha_conta.py")
-            st.session_state.user = user
-            return
+        # if error != None:
+        #     user = do_get("readers/me")
+        #     st.switch_page("pages/7_minha_conta.py")
+        #     st.session_state.user = user
+        #     return
         
         st.switch_page("pages/4_admin_livros.py")
         st.session_state.user = user
