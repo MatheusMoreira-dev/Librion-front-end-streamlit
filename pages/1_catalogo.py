@@ -78,7 +78,7 @@ def modal_details(book:dict):
 
     with center:
         if image and image != "(vazio)":
-            st.image(book.get("image"), width='stretch')
+            st.image(book["image"], width='stretch')
 
     st.header(book.get("title"))
     st.text(book.get("author"))

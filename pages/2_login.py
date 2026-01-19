@@ -50,6 +50,7 @@ def validate_login(email, password, is_admin = False):
         if user:
             st.session_state.user = user
             st.session_state.auth_token = token
+            st.session_state.is_admin = is_admin
 
             #Redireciona para a página (depende se é admin ou não)
             redirect_page(is_admin)
@@ -78,7 +79,7 @@ def card_login():
         validate_login(email, password)
 
 # Renderiza a página        
-def render_page():
+def render_login_page():
     visitor_header()
 
     _, center, _ = st.columns([1, 4, 1])
@@ -92,4 +93,4 @@ def render_page():
         with col_form:
             card_login()
 
-render_page()
+render_login_page()
