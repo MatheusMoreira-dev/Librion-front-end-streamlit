@@ -1,15 +1,41 @@
 import streamlit as st
 from components import admin_header
-
-# Verificação de segurança
-if not st.session_state.get("logado") or st.session_state.get("perfil") != "admin":
-    st.error("Acesso negado! Esta página é restrita a administradores.")
-    st.button("Voltar para Home", on_click=lambda: st.switch_page("Home.py"))
-    st.stop() # Para a execução aqui
-
+from utils import librion_api
 
 st.set_page_config(page_title="Admin - Cadastrar Livro", layout="wide")
+
+# Verificação de segurança
+def check_login():
+    user = st.session_state.get("user")
+    is_admin = st.session_state.get("is_admin")
+
+    if not user or not is_admin:
+        st.error("Acesso negado! Esta página é restrita a administradores.")
+        st.button("Voltar para Home", on_click=lambda: st.switch_page("Home.py"))
+        st.stop() # Para a execução aqui
+   
 admin_header()
+
+def register_book(isbn, quantity, is_global = True):
+    headers = {"Authorization": f"Beares {st.session_state.token}"}
+    body = {"isbn": isbn, "quantity": quantity, "is_global": is_global}
+    response = librion_api("POST", "/libraries/me/copies", json=body, headers=headers)
+
+    if response["success"]:
+        st.toast("Livro cadastrado com sucesso!")
+    
+    else:
+        st.error(f"Erro no cadastro: {response["error"]}")
+        st.stop()
+
+# Cria um novo livro
+def render_book_form():
+    isbn = st.text_input("ISBN")
+    quantity = st.number_input("Quantidade de Exemplares", min_value=1, step=1)
+    is_global = st.toggle("Global?")
+
+    enviar = st.button("Cadastrar Livro", type="primary")
+    pass
 
 st.title("📑 Gestão de Acervo")
 st.subheader("Cadastrar Novo Livro")
@@ -30,10 +56,3 @@ with st.form("form_livro", clear_on_submit=True):
     resumo = st.text_area("Resumo/Descrição")
     
     enviar = st.form_submit_button("Cadastrar Livro", type="primary")
-
-if enviar:
-    if titulo and autor:
-        # Aqui será a integração futura com o FastAPI
-        st.success(f"O livro '{titulo}' foi preparado para cadastro no sistema!")
-    else:
-        st.warning("Por favor, preencha o Título e o Autor.")

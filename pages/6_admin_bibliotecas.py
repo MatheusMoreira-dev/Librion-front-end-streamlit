@@ -6,9 +6,23 @@ st.set_page_config(page_title="Admin - Unidades", layout="wide")
 admin_header()
 
 # Verificação de segurança: Apenas administradores
-if not st.session_state.get("logado") or st.session_state.get("perfil") != "admin":
-    st.error("Acesso restrito a administradores.")
-    st.stop()
+def check_login():
+    user = st.session_state.get("user")
+    is_admin = st.session_state.get("is_admin")
+
+    if not user or not is_admin:
+        st.error("Acesso restrito a administradores.")
+        st.button("Login", type='primary')
+        st.stop()
+
+def render_page():
+    pass
+
+def render_tabs():
+    pass
+
+def register_library():
+    pass
 
 st.title("🏢 Gestão de Unidades")
 st.write("Gerencie as bibliotecas físicas que compõem a rede municipal.")
