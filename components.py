@@ -41,6 +41,8 @@ def user_header():
 
     with col4:
         if st.button("Sair", type="tertiary", width="stretch"):
+            st.session_state.user = ""
+            st.switch_page("home.py")
             pass
 
 # Cabeçalho de admin
@@ -74,16 +76,18 @@ def admin_header():
 # Renderiza o cabeçalho
 def render_header():
     user = st.session_state.get("user")
+    is_admin = st.session_state.get("is_admin")
     
     if not user:
         visitor_header()
     
-    elif user["admin"]:
+    elif is_admin:
         admin_header()
     
     else:
         user_header()
 
+# Renderiza os carda da página home
 def render_cards():
     f1, f2, f3, f4 = st.columns(4)
 

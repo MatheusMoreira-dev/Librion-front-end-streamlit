@@ -7,29 +7,52 @@ from utils import librion_api
 st.set_page_config(page_title="Librion - Minha Conta", layout="wide")
 
 # Busca os empréstimos na API
-def get_loans():
-    response = librion_api("", "")
-    pass
+def fetch_loans():
+    response = librion_api("GET", "/readers/me/loans", token=st.session_state.get("auth_token"))
+    st.session_state.loans = response.get("data")
+
+    return st.session_state.loans
 
 # Verifica se o usuário está logado
-def check_login(user):
+def check_login():
+    user = st.session_state.get("user")
+
     if not user:
         st.error("Por favor, faça login para acessar esta página.")
         st.button("Ir para Login", on_click=lambda: st.switch_page("pages/2_Login.py"))
         st.stop()
 
 # Renderiza o perfil
-def render_profile(name, library):
-    col_av, col_info = st.columns([1, 8])
-    with col_av:
-        st.markdown(
-            f"<div style='background-color:#456e7d; color:white; border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; font-size:30px;'>{name[0:2]}</div>", unsafe_allow_html=True)
+def render_profile():
+    response = librion_api("GET", "/readers/me", token=st.session_state.get("auth_token"))
 
-    with col_info:
-        st.subheader(st.session_state.user.get("name", "Usuário"))
-        st.caption(f"📍 Biblioteca de Referência: {library}")
+    if response["success"]:
+        profile = response["data"]
+        name = profile["name"]
+        library = profile["library"]["name"]
 
-    st.write("##")
+        col_av, col_info = st.columns([1, 8])
+        
+        # Logo com o nome
+        with col_av:
+            st.markdown(
+                f"""<div 
+                    style='background-color:#456e7d; 
+                    color:white; border-radius:50%; 
+                    width:80px; 
+                    height:80px; 
+                    display:flex; 
+                    align-items:center; 
+                    justify-content:center; 
+                    font-size:30px;'>{name[0:2]}
+                </div>""", unsafe_allow_html=True)
+
+        # Nome do usuário
+        with col_info:
+            st.subheader(name)
+            st.caption(f"📍 Biblioteca de Referência: {library}")
+
+        st.write("##")
 
 # Renderiza os cartões de métricas
 def render_metrics_cards(total_loans, total_books, next_return_date):
@@ -58,15 +81,20 @@ def render_metrics_cards(total_loans, total_books, next_return_date):
 # Renderiza um empréstimo
 def render_book_loan(loan):
     with st.container(border=True):
-        book = loan["copy"]
+        
+        copy = loan["copy_data"]
+        library = copy["library"]
+        book = copy["book"]
+        
         c1, c2 = st.columns([3, 1])
 
         with c1:
-            st.markdown(f"**{book["name"]}**")
+            st.markdown(f"**{book["title"]}**")
             st.caption(f"{book["author"]}")
+            st.caption(f"Biblioteca: {library["name"]}")
             st.write(f"📅 Empréstimo: {loan["request_date"]} | Devolução: {loan["return_date"]}")
         with c2:
-            st.info(f"{loan["status"]}")
+            st.info(f"{loan["active"]}")
 
 # Renderiza todos os empréstimos
 def render_loans(loans):
@@ -76,21 +104,22 @@ def render_loans(loans):
         render_book_loan(loan)
 
 def render_page():
-    loans = [
-        {   
-            "copy": {
-                "name": "Machado de Assis",
-                "author": "algo"
-            },
-            "request_date": datetime.now(),
-            "return_date": datetime.now(),
-            "status": "ativo"
-        }
-    ]
-
-
+    # Verifica se está logado
+    check_login()
+    
+    # Header
     user_header()
-    render_profile("Matheus", "Chique")
-    render_loans(loans)
+
+    # Renderiza o perfil
+    render_profile()
+
+    st.divider()
+
+    # Busca os emprëstimos
+    loans = fetch_loans()
+
+    # Se existir, renderiza
+    if loans:
+        render_loans(loans)
 
 render_page()
