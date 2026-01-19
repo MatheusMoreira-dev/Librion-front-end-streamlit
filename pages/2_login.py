@@ -15,16 +15,12 @@ def get_token(email, password, is_admin = False):
     }
 
     response = librion_api("POST", "/auth/login", json=credentials)
-    return response.get("data", {}).get("acess_token")
+    return response.get("data", {}).get("access_token")
 
 # Busca os dados do usuário por o token
 def get_user(token, is_admin = False):
-    # Adiciona o token de autorização no headers da requisição
-    headers = {}
-    headers["Authorization"] =  f"Bearer {token.get("acess_token")}"
-    
     request_route = "/libraries/me" if is_admin else "/readers/me"
-    response = librion_api("GET", request_route, headers=headers)
+    response = librion_api("GET", request_route, token=token)
     
     return response.get("data")
 
@@ -44,10 +40,11 @@ def validate_login(email, password, is_admin = False):
         with st.spinner("Autenticando..."):
             time.sleep(1)
             token = get_token(email, password, is_admin)
-            user = get_user(token, is_admin) if token else None
+            #user = get_user(token, is_admin) if token else None
+            user = {"name": "Matheus", "library": "algo"}
 
         # Se existir um usuário
-        if True:
+        if user:
             st.session_state.user = user
             st.session_state.auth_token = token
             st.session_state.is_admin = is_admin
