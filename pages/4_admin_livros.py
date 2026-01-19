@@ -13,9 +13,8 @@ def check_login():
         st.error("Acesso negado! Esta página é restrita a administradores.")
         st.button("Voltar para Home", on_click=lambda: st.switch_page("Home.py"))
         st.stop() # Para a execução aqui
-   
-admin_header()
 
+# Registra um novo livro
 def register_book(isbn, quantity, is_global = True):
     headers = {"Authorization": f"Beares {st.session_state.token}"}
     body = {"isbn": isbn, "quantity": quantity, "is_global": is_global}
@@ -30,29 +29,46 @@ def register_book(isbn, quantity, is_global = True):
 
 # Cria um novo livro
 def render_book_form():
-    isbn = st.text_input("ISBN")
-    quantity = st.number_input("Quantidade de Exemplares", min_value=1, step=1)
-    is_global = st.toggle("Global?")
+    with st.container(border=True, width='stretch'):
+        col1, col2 = st.columns([4,1])
+        
+        with col1:
+            isbn = st.text_input("ISBN")
+
+        with col2:
+            quantity = st.number_input("Quantidade de Exemplares", min_value=1, step=1)
+            is_global = st.toggle("Global?")
 
     enviar = st.button("Cadastrar Livro", type="primary")
+
+# Renderiza grade de livros
+def render_grid_copies():
     pass
 
-st.title("📑 Gestão de Acervo")
-st.subheader("Cadastrar Novo Livro")
+# Renderizar página
+def render_page():
+    st.title("📑 Gestão de Acervo")
+    st.subheader("Cadastrar Novo Livro")
 
-with st.form("form_livro", clear_on_submit=True):
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        titulo = st.text_input("Título do Livro")
-        autor = st.text_input("Autor")
-        isbn = st.text_input("ISBN")
-    
-    with col2:
-        genero = st.selectbox("Género", ["Romance", "Didático", "Ficção", "Biografia"])
-        unidade = st.selectbox("Biblioteca de Destino", ["Centro", "Pinto Madeira", "Seminário"])
-        quantidade = st.number_input("Quantidade de Exemplares", min_value=1, step=1)
+    check_login()
+    admin_header()
+    render_book_form()
 
-    resumo = st.text_area("Resumo/Descrição")
+render_page()
+
+# with st.form("form_livro", clear_on_submit=True):
+#     col1, col2 = st.columns(2)
     
-    enviar = st.form_submit_button("Cadastrar Livro", type="primary")
+#     with col1:
+#         titulo = st.text_input("Título do Livro")
+#         autor = st.text_input("Autor")
+#         isbn = st.text_input("ISBN")
+    
+#     with col2:
+#         genero = st.selectbox("Género", ["Romance", "Didático", "Ficção", "Biografia"])
+#         unidade = st.selectbox("Biblioteca de Destino", ["Centro", "Pinto Madeira", "Seminário"])
+#         quantidade = st.number_input("Quantidade de Exemplares", min_value=1, step=1)
+
+#     resumo = st.text_area("Resumo/Descrição")
+    
+#     enviar = st.form_submit_button("Cadastrar Livro", type="primary")

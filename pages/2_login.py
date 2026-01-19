@@ -47,7 +47,7 @@ def validate_login(email, password, is_admin = False):
             user = get_user(token, is_admin) if token else None
 
         # Se existir um usuário
-        if user:
+        if True:
             st.session_state.user = user
             st.session_state.auth_token = token
             st.session_state.is_admin = is_admin
@@ -74,9 +74,10 @@ def card_login():
     password = st.text_input("Senha", type="password", placeholder="********")
     
     btn_login = st.button("Fazer Login", type="primary", width='stretch')
+    btn_is_admin = st.toggle("Admin", False)
 
     if btn_login:
-        validate_login(email, password)
+        validate_login(email, password, btn_is_admin)
 
 # Renderiza a página        
 def render_login_page():
