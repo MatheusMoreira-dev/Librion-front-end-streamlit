@@ -5,28 +5,47 @@ from utils import librion_api
 # Configuração da página para esconder a barra lateral e focar no login
 st.set_page_config(page_title="Librion | Login", layout="wide", initial_sidebar_state="collapsed")
 
-def get_acess_token(email, password):
-    response = librion_api("POST", "/auth/login", json={"email": email, "password": password})
+# Busca o acess_token da api
+def get_token(email, password, is_admin = False):
+    credentials = {
+        "email": email, 
+        "password": password, 
+        "admin": is_admin
+    }
 
-    if response["success"]:
-        st.session_state.acess = response["data"]
-        return response["data"]
-    
-    return None
+    response = librion_api("POST", "/auth/login", json=credentials)
+    return response.get("data", {}).get("acess_token")
 
-def get_auth_user(token):
+# Busca os dados do usuário por o token
+def get_user(token, is_admin = False):
+    # Adiciona o token de autorização no headers da requisição
     headers = {}
-    headers["Authorization"] =  f"Bearer {token}"
+    headers["Authorization"] =  f"Bearer {token.get("acess_token")}"
+    
+    request_route = "/libraries/me" if is_admin else "/readers/me"
+    response = librion_api("GET", request_route, headers=headers)
 
-    response = librion_api("")
+    return response.get("data")
 
-    pass
+# Redireciona para a página de usuário ou admnistrador
+def redirect_page(is_admin):
+    page = "pages/4_admin_livros.py" if is_admin else "pages/7_minha_conta.py" 
+    st.switch_page(page)
 
-def redirect_page(user):
-    if user["admin"]:
-        st.switch_page("pages/4_admin_livros.py")
+# Validar Login
+def validate_login(email, password, is_admin = False):
+    if not email.strip() or not password.strip():
+        st.error("Preencha todos os campos!")
+
+    token = get_token(email, password, is_admin)
+    user = get_user(token, is_admin) if token else None
+
+    if user:
+        redirect_page(is_admin)
+    
     else:
-        st.switch_page("pages/7_minha_conta.py")
+        st.error("Usuário não encontrado! Tente novamente")
+        st.stop()
 
 def card_banner():
     with st.container(border=True): # Simula o card azul da imagem
@@ -38,27 +57,10 @@ def card_login():
     st.write("Entre com suas credenciais para acessar o Librion")
     
     email = st.text_input("E-mail", placeholder="seu@email.com")
-    senha = st.text_input("Senha", type="password", placeholder="********")
+    password = st.text_input("Senha", type="password", placeholder="********")
     
-    btn_login = st.button("Fazer Login", type="primary", width='stretch')
-
-    if btn_login:
-        if not email.strip() or not senha.strip():
-            st.error("Preencha todos os campos!")
-            st.stop()
-
-        user = {
-            "name": "Matheus",
-            "email": "matheus@gmail.com",
-            "admin": False
-        }
-
-        st.session_state.user = user
-        redirect_page(user)
-        # token = get_acess_token(email, senha)
-
-        # if token:
-
+    st.button("Fazer Login", type="primary", width='stretch', on_click=validate_login(email, password))
+        
 def render_page():
     visitor_header()
 

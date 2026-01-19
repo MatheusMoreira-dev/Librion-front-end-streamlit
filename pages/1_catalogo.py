@@ -159,11 +159,11 @@ def render_grid(books, cols_per_row = 5):
 
 # Renderiza a página
 def render_page():
+    render_header()
+
     # Criar uma variável de "estado" para a lista de livros    
     if "books" not in st.session_state:
         st.session_state.books = fetch_books()
-
-    render_header()
     
     st.title("Catálogo")
     st.write("Explore o acervo completo da Rede Municipal de Bibliotecas de Crato-CE")
