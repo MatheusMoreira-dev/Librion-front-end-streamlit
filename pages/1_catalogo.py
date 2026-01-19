@@ -70,7 +70,7 @@ def render_filters():
         st.stop()
 
 # Modal com detalhes de um livro
-@st.dialog("Detalhes", width='small')
+@st.dialog("Detalhes", width='medium')
 def modal_details(book:dict):
     image = book.get("image")
 
@@ -83,6 +83,13 @@ def modal_details(book:dict):
     st.header(book.get("title"))
     st.text(book.get("author"))
     st.text(book.get("description"))
+
+# Requisitar um empréstimo
+def request_loan(copy_id):
+    response = librion_api("POST", "/readers/me/loans", json={"copy_id": copy_id}, token=st.session_state.get("auth_token"))
+    
+    if response["success"]:
+        st.toast("Empréstimo solicitado!")
 
 # Modal com o nome de todas as bibliotecas que tem o livro disponível
 @st.dialog("Empréstimo", width="medium")
@@ -97,6 +104,7 @@ def modal_loan(book:dict):
             
             copy = copies[i]
             is_available = copy["quantity_available"] > 0
+            
             with col1:
                 st.subheader(copy["library"]["name"], text_alignment="left")
         
@@ -108,26 +116,47 @@ def modal_loan(book:dict):
             
             with col3:
                 if is_available:
-                    st.button("Solicitar", key=(copy["id_book"]) * i, width='stretch', type='primary')
+                    if st.button("Solicitar", key=(copy["id"]) * i, width='stretch', type='primary'):
+                        request_loan(copy["id"])
     else:
         st.error("Errro na requisição das cópias")
         st.stop()
 
 # Layout de um livro
 def card_book(book:dict):
-    with st.container(border=True, height="stretch"):
+    with st.container(border=True, height="stretch", horizontal_alignment='center'):
         url_image = book.get("image")
 
         if url_image and not url_image == "(vazio)":
-            st.image(url_image, width='stretch')
+            st.image(url_image, width=150)
+        
+        else:
+            st.markdown(
+                """
+                    <div style="
+                        width: 100%;
+                        height: 250px;
+                        background-color: #e0e0e0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: black;
+                        border-radius: 8px;
+                    ">
+                        Sem capa
+                    </div>
+                """,
+                unsafe_allow_html=True
+            )
     
         st.text(book["title"])
-        st.caption(f"{book['author']}")
+        st.caption(f"📚 {book['author']}")
         
         btn_col1, btn_col2 = st.columns([1, 1])
         with btn_col1:
             user = st.session_state.get("user")
-            disable_button = True if not user or user["admin"] else False
+            is_admin = st.session_state.get("is_admin")
+            disable_button = True if not user or is_admin else False
 
             btn_loan = st.button("Empréstimo", type="primary", width='stretch', key=f"loan_{book["id"]}", disabled=disable_button)
 
