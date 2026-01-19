@@ -1,6 +1,7 @@
 import streamlit as st
 from components import visitor_header
 from utils import librion_api
+import time
 
 # Configuração da página para esconder a barra lateral e focar no login
 st.set_page_config(page_title="Librion | Login", layout="wide", initial_sidebar_state="collapsed")
@@ -24,7 +25,7 @@ def get_user(token, is_admin = False):
     
     request_route = "/libraries/me" if is_admin else "/readers/me"
     response = librion_api("GET", request_route, headers=headers)
-
+    
     return response.get("data")
 
 # Redireciona para a página de usuário ou admnistrador
@@ -34,24 +35,36 @@ def redirect_page(is_admin):
 
 # Validar Login
 def validate_login(email, password, is_admin = False):
+    # Email ou senha vazios
     if not email.strip() or not password.strip():
         st.error("Preencha todos os campos!")
-
-    token = get_token(email, password, is_admin)
-    user = get_user(token, is_admin) if token else None
-
-    if user:
-        redirect_page(is_admin)
     
     else:
-        st.error("Usuário não encontrado! Tente novamente")
-        st.stop()
+        # Busca o token e após isso o usuário
+        with st.spinner("Autenticando..."):
+            time.sleep(1)
+            token = get_token(email, password, is_admin)
+            user = get_user(token, is_admin) if token else None
 
+        # Se existir um usuário
+        if user:
+            st.session_state.user = user
+            st.session_state.auth_token = token
+
+            #Redireciona para a página (depende se é admin ou não)
+            redirect_page(is_admin)
+        
+        else:
+            st.error("Usuário não encontrado! Tente novamente")
+            st.stop()
+
+# Card da lateral esquerda
 def card_banner():
     with st.container(border=True): # Simula o card azul da imagem
         st.image("https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000", caption="Bem-vindo ao Librion")
         st.markdown("### Faça parte da rede integrada de bibliotecas municipais de Crato-CE")
 
+# Cada da lateral direita
 def card_login():
     st.subheader("Acesse sua conta")
     st.write("Entre com suas credenciais para acessar o Librion")
@@ -59,8 +72,12 @@ def card_login():
     email = st.text_input("E-mail", placeholder="seu@email.com")
     password = st.text_input("Senha", type="password", placeholder="********")
     
-    st.button("Fazer Login", type="primary", width='stretch', on_click=validate_login(email, password))
-        
+    btn_login = st.button("Fazer Login", type="primary", width='stretch')
+
+    if btn_login:
+        validate_login(email, password)
+
+# Renderiza a página        
 def render_page():
     visitor_header()
 
