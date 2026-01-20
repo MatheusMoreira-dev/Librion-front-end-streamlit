@@ -1,9 +1,9 @@
 import streamlit as st
 from components import admin_header
+from utils import librion_api
 
 # 1. Configuração da página
 st.set_page_config(page_title="Admin - Unidades", layout="wide")
-admin_header()
 
 # Verificação de segurança: Apenas administradores
 def check_login():
@@ -15,60 +15,82 @@ def check_login():
         st.button("Login", type='primary')
         st.stop()
 
-def render_page():
-    pass
+# Recebe todas as bibliotecas cadastradas
+def fetch_registered_libraries():
+    response = librion_api("GET", "/libraries/")
 
-def render_tabs():
-    pass
+    if response.get("success"):
+        st.session_state.registered_libraries = response["data"]
+        return response["data"]
+    
+    else:
+        st.info("Nenhuma Biblioteca Cadastrada!")
 
-def register_library():
-    pass
+# Registra um novo usuário
+def register_library(name, email, password, cep):
+    json = {
+        "name": name,
+        "email": email,
+        "password": password,
+        "cep": cep
+    }
 
-st.title("🏢 Gestão de Unidades")
-st.write("Gerencie as bibliotecas físicas que compõem a rede municipal.")
+    response = librion_api("POST", "/auth/library", json=json)
 
-# Usamos abas para separar o cadastro da visualização
-tab_cadastro, tab_lista = st.tabs(["➕ Nova Unidade", "📋 Unidades Ativas"])
+    if response.get("success"):
+        st.toast("Nova biblioteca adicionada!")
+        st.balloons()
+    
+    else:
+        st.toast(f"Erro:{response["error"]["detail"]}")
 
-# --- ABA 1: FORMULÁRIO DE CADASTRO ---
-with tab_cadastro:
+# Renderiza formulário de biblioteca
+def render_form_register():
     with st.form("form_biblioteca", clear_on_submit=True):
         st.subheader("Dados da Biblioteca")
-        
+    
         col1, col2 = st.columns(2)
         with col1:
-            nome_unidade = st.text_input("Nome da Unidade", placeholder="Ex: Biblioteca Municipal Vicente Leite")
-            responsavel = st.text_input("Responsável/Bibliotecário", placeholder="Nome do encarregado")
-            telefone = st.text_input("Telefone de Contato")
+            name = st.text_input("Nome da Unidade")
+            email = st.text_input("E-mail")
         
         with col2:
-            endereco = st.text_input("Endereço Completo", placeholder="Rua, Número, Bairro")
-            horario = st.text_input("Horário de Funcionamento", placeholder="Ex: Seg a Sex, 08h às 18h")
-            capacidade = st.number_input("Capacidade de Acervo (Estimada)", min_value=0, step=100)
+            password = st.text_input("Senha", type="password")
+            cep = st.text_input("CEP")
 
         st.write("##")
         enviar = st.form_submit_button("Cadastrar Unidade", type="primary")
 
         if enviar:
-            if nome_unidade and endereco:
-                # No futuro, aqui será o POST para o FastAPI
-                st.success(f"A unidade '{nome_unidade}' foi integrada à rede Librion!")
-                st.balloons()
+            if name.strip() and email.strip() and password.strip():
+                register_library(name, email, password, cep)
+                fetch_registered_libraries()
             else:
-                st.error("Por favor, preencha pelo menos o Nome e o Endereço da unidade.")
+                st.error("Campos nome, senha e cep são obrigatórios")
 
-# --- ABA 2: LISTAGEM ---
-with tab_lista:
+# Renderiza todas as bibliotecas
+def render_list_libraries():
     st.subheader("Rede de Bibliotecas")
-    
-    # Simulação de dados (Mock)
-    unidades = [
-        {"ID": 1, "Unidade": "Biblioteca Central", "Bairro": "Centro", "Livros": 5200, "Status": "Ativa"},
-        {"ID": 2, "Unidade": "Biblioteca Pinto Madeira", "Bairro": "Pinto Madeira", "Livros": 2100, "Status": "Ativa"},
-        {"ID": 3, "Unidade": "Biblioteca Seminário", "Bairro": "Seminário", "Livros": 1850, "Status": "Em Reforma"},
-    ]
-    
-    # Exibição em DataFrame para permitir ordenação
+    unidades = fetch_registered_libraries()
     st.dataframe(unidades, use_container_width=True, hide_index=True)
+
+# Render page
+def render_page():
+    check_login()
+    admin_header()
+
+    st.title("🏢 Gestão de Unidades")
+    st.write("Gerencie as bibliotecas físicas que compõem a rede municipal.")
     
-    st.info("💡 As unidades marcadas como 'Ativa' aparecem como opção no cadastro de livros e catálogo.")
+    
+    tab_cadastro, tab_lista = st.tabs(["➕ Nova Unidade", "📋 Unidades Ativas"])
+
+    # --- ABA 1: FORMULÁRIO DE CADASTRO ---
+    with tab_cadastro:
+        render_form_register()
+
+    # --- ABA 2: LISTAGEM ---
+    with tab_lista:
+        render_list_libraries()
+
+render_page()

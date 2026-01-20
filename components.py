@@ -66,7 +66,7 @@ def admin_header():
             st.switch_page("pages/5_admin_usuarios.py")
     
     with cols[3]:
-        if st.button("🏢 Bibliotecas", use_container_width=True, disabled= not is_manager):
+        if st.button("🏢 Bibliotecas", use_container_width=True, disabled=not is_manager):
             st.switch_page("pages/6_admin_bibliotecas.py")
     
     with cols[5]:

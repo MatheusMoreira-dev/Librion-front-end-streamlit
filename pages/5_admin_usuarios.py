@@ -15,33 +15,17 @@ def check_login():
         st.button("Voltar para Home", on_click=lambda: st.switch_page("Home.py"))
         st.stop()
 
+# Busca os leitores cadastrados no banco de dados
 def fetch_readers():
-    """
-    Depois vira:
-    GET /users
-    retorno:
-    [
-      { "name": "", "email": "", "cep": "" }
-    ]
-    """
-
-    return [
-        {
-            "name": "João Silva",
-            "email": "joao@email.com",
-            "cep": "63010-000"
-        },
-        {
-            "name": "Maria Oliveira",
-            "email": "maria@email.com",
-            "cep": "58900-000"
-        },
-        {
-            "name": "Carlos Souza",
-            "email": "carlos@email.com",
-            "cep": "63100-000"
-        }
-    ]
+    response = librion_api("GET", "/libraries/me/readers", token=st.session_state.get("auth_token"))
+    
+    if response.get("success"):
+        st.session_state.library_readers = response["data"]
+        return response["data"]
+    
+    else:
+        st.info("Nenhum leitor cadastrado na biblioteca")
+        st.stop()
 
 #POST Reader
 def create_reader(name, email, cep, password):
@@ -78,17 +62,18 @@ def render_reader_form():
 
         if st.button("Criar Conta", type="primary", use_container_width=True):
 
-            if not nome or not email or not cep or not senha:
+            if not nome.strip() or not email.strip() or not cep.strip() or not senha.strip():
                 st.warning("Preencha todos os campos!")
             else:
-                response = create_reader(nome, email, cep, senha)
+                create_reader(nome, email, cep, senha)
 
 # Renderiza os usuário cadastros
-def render_list_readers(users):
+def render_list_readers():
     st.subheader("Usuários Cadastrados")
+    readers = fetch_readers()
 
     #lista visual bonita
-    for u in users:
+    for u in readers:
         with st.container(border=True):
             col1, col2 = st.columns([3, 1])
 
@@ -114,6 +99,6 @@ def render_page():
         render_reader_form()
     
     with tab2:
-        render_list_readers("")
+        render_list_readers()
 
 render_page()
