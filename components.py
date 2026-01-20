@@ -66,8 +66,7 @@ def admin_header():
             st.switch_page("pages/6_admin_bibliotecas.py")
     
     with cols[5]:
-        if st.button("👤 Minha Conta", type="primary", use_container_width=True):
-            st.switch_page("pages/7_minha_conta.py")
+        st.caption(st.session_state.get("user", {}).get("name"))
 
     with cols[6]:
         if st.button("Sair", type="tertiary", width="stretch"):
