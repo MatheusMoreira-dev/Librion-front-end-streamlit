@@ -40,9 +40,7 @@ def validate_login(email, password, is_admin = False):
         with st.spinner("Autenticando..."):
             time.sleep(1)
             token = get_token(email, password, is_admin)
-            #user = get_user(token, is_admin) if token else None
-
-            user = {"name": "biblioteca"}
+            user = get_user(token, is_admin) if token else None
 
         # Se existir um usuário
         if user:
