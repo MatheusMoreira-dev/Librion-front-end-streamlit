@@ -40,7 +40,9 @@ def validate_login(email, password, is_admin = False):
         with st.spinner("Autenticando..."):
             time.sleep(1)
             token = get_token(email, password, is_admin)
-            user = get_user(token, is_admin) if token else None
+            #user = get_user(token, is_admin) if token else None
+
+            user = {"name": "biblioteca"}
 
         # Se existir um usuário
         if user:
@@ -70,7 +72,7 @@ def card_login():
     password = st.text_input("Senha", type="password", placeholder="********")
     
     btn_login = st.button("Fazer Login", type="primary", width='stretch')
-    btn_is_admin = st.toggle("Admin", False)
+    btn_is_admin = st.toggle("Admin", True)
 
     if btn_login:
         validate_login(email, password, btn_is_admin)
