@@ -1,6 +1,7 @@
 import streamlit as st
 from components import admin_header
 from utils import librion_api
+import time
 
 st.set_page_config(page_title="Admin - Cadastrar Livro", layout="wide")
 
@@ -14,10 +15,18 @@ def check_login():
         st.button("Voltar para Home", on_click=lambda: st.switch_page("Home.py"))
         st.stop()
 
+#Busca todos os livros e salva no state
+def fetch_books():
+    response = librion_api("GET", "/libraries/me/copies", token=st.session_state.auth_token)
+
+    if response["success"]:
+        st.session_state.library_books = response["data"]
+    
+    else:
+        st.toast(f"Erro ao requisitar os livros:{response["error"]['detail']}")
+
 #registra um novo livro
 def register_book(isbn, quantity, is_global=True):
-    headers = {"Authorization": f"Bearer {st.session_state.token}"}
-
     body = {
         "isbn": isbn,
         "quantity": quantity,
@@ -33,14 +42,12 @@ def register_book(isbn, quantity, is_global=True):
 
     if response["success"]:
         st.toast("Livro cadastrado com sucesso!")
+        fetch_books()
     else:
-        st.error(f"Erro no cadastro: {response['error']}")
-        st.stop()
+        st.toast(f"Erro no cadastro: {response['error']['detail']}")
 
 #excluir livro
 def delete_book(copy_id):
-    headers = {"Authorization": f"Bearer {st.session_state.token}"}
-
     response = librion_api(
         "DELETE",
         f"/libraries/me/copies/{copy_id}",
@@ -81,57 +88,44 @@ def render_book_form():
 def render_book_list():
     st.divider()
     st.subheader("📚 Livros Cadastrados")
-
-    #API DESATIVADA (MOCK)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    books = [
-        {
-            "id": 1,
-            "quantity": 3,
-            "quantity_available": 2,
-            "book": {
-                "title": "O Alquimista",
-                "author": "Paulo Coelho",
-                "isbn": "9788584390670",
-                "image": "",
-                "description": "Um jovem pastor parte em busca de um tesouro e descobre muito mais sobre si mesmo e seus sonhos."
-            }
-        },
-
-        {
-            "id": 2,
-            "quantity": 5,
-            "quantity_available": 5,
-            "book": {
-                "title": "Dom Casmurro",
-                "author": "Machado de Assis",
-                "isbn": "9788535910667",
-                "image": "",
-                "description": "Clássico da literatura brasileira que conta a história de Bentinho e Capitu."
-            }
-        }
-    ]
-    #renderização
+    
+    fetch_books()
+    books = st.session_state.get("library_books")
 
     if not books:
         st.info("Nenhum livro cadastrado ainda.")
         return
 
     for item in books:
-        book = item["book"]
+        book = item.get("book", {})
 
         with st.container(border=True):
             col1, col2, col3 = st.columns([1, 3, 1])
+            url_image = book.get("image")
 
             #imagem do livro
             with col1:
-                image = (
-                    book["image"]
-                    if book["image"]
-                    else "https://placehold.co/150x220?text=Sem+Capa"
-                )
-
-                st.image(image, width=140)
+                if url_image and not url_image == "(vazio)":
+                    st.image(url_image, width=150)
+        
+                else:
+                    st.markdown(
+                        """
+                            <div style="
+                                width: 100%;
+                                height: 250px;
+                                background-color: #e0e0e0;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: black;
+                                border-radius: 8px;
+                            ">
+                                Sem capa
+                            </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
             #informações do livro
             with col2:
@@ -155,17 +149,16 @@ def render_book_list():
                 if st.button("🗑 Excluir", key=f"del_{item['id']}"):
                     delete_book(item["id"])
 
-
 #pag principal
 def render_page():
-    st.title("📑 Gestão de Acervo")
-    st.subheader("Cadastrar Novo Livro")
-
+    
     check_login()
     admin_header()
+    
+    st.subheader("📑 Gestão de Acervo")
+    st.caption("Cadastrar Novo Livro")
 
     render_book_form()
     render_book_list()
-
 
 render_page()
