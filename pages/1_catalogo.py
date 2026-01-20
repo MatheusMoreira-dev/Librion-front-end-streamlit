@@ -90,6 +90,9 @@ def request_loan(copy_id):
     
     if response["success"]:
         st.toast("Empréstimo solicitado!")
+    
+    else:
+        st.toast(response["error"]["detail"])
 
 # Modal com o nome de todas as bibliotecas que tem o livro disponível
 @st.dialog("Empréstimo", width="medium")
@@ -100,24 +103,25 @@ def modal_loan(book:dict):
         copies = response["data"]
 
         for i in range(len(copies)):
-            col1, col2, col3 = st.columns([3,2,1])
+            with st.container(border=True, vertical_alignment='center'):
+                col1, col2, col3 = st.columns([3,2,1])
+                
+                copy = copies[i]
+                is_available = copy["quantity_available"] > 0
+                
+                with col1:
+                    st.markdown(copy["library"]["name"], text_alignment="left")
             
-            copy = copies[i]
-            is_available = copy["quantity_available"] > 0
-            
-            with col1:
-                st.subheader(copy["library"]["name"], text_alignment="left")
-        
-            with col2:
-                if is_available:
-                    st.success("Disponível", width='stretch')
-                else:
-                    st.error("Indisponível", width='stretch')
-            
-            with col3:
-                if is_available:
-                    if st.button("Solicitar", key=(copy["id"]) * i, width='stretch', type='primary'):
-                        request_loan(copy["id"])
+                with col2:
+                    if is_available:
+                        st.success("Disponível")
+                    else:
+                        st.error("Indisponível")
+                
+                with col3:
+                    if is_available:
+                        if st.button("Solicitar", key=(copy["id"]) * i, width='stretch', type='primary'):
+                            request_loan(copy["id"])
     else:
         st.error("Errro na requisição das cópias")
         st.stop()

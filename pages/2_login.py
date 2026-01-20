@@ -40,8 +40,7 @@ def validate_login(email, password, is_admin = False):
         with st.spinner("Autenticando..."):
             time.sleep(1)
             token = get_token(email, password, is_admin)
-            #user = get_user(token, is_admin) if token else None
-            user = {"name": "Matheus", "library": "algo"}
+            user = get_user(token, is_admin) if token else None
 
         # Se existir um usuário
         if user:
@@ -53,7 +52,7 @@ def validate_login(email, password, is_admin = False):
             redirect_page(is_admin)
         
         else:
-            st.error("Usuário não encontrado! Tente novamente")
+            st.error("Usuário ou senha errados! Tente novamente")
             st.stop()
 
 # Card da lateral esquerda

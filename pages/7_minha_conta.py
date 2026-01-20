@@ -78,23 +78,59 @@ def render_metrics_cards(total_loans, total_books, next_return_date):
 
     st.write("##")
 
+# Converte datas da API para o formato dd/mm/yyyy
+def iso_to_ddmmyyyy(data_iso: str) -> str:
+    data = datetime.fromisoformat(data_iso.replace("Z", "+00:00"))
+    return data.strftime("%d/%m/%Y")
+
 # Renderiza um empréstimo
-def render_book_loan(loan):
+def render_book_loan(loan:dict):
     with st.container(border=True):
         
-        copy = loan["copy_data"]
-        library = copy["library"]
-        book = copy["book"]
+        copy = loan.get("copy_data", {})
+        library = copy.get("library", {})
+        book = copy.get("book", {})
+        image = book.get("image")
+
+        request_date = iso_to_ddmmyyyy(loan["request_date"])
+        return_date = iso_to_ddmmyyyy(loan["return_date"])
         
-        c1, c2 = st.columns([3, 1])
+        c1, c2, c3 = st.columns([1, 4, 2])
 
         with c1:
+            if not image or image == "(vazio)":
+                st.markdown(
+                    """
+                        <div style="
+                            width: 100%;
+                            height: 250px;
+                            background-color: #e0e0e0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: black;
+                            border-radius: 8px;
+                        ">
+                            Sem capa
+                        </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                st.image(image, width=150)
+
+
+        with c2:
             st.markdown(f"**{book["title"]}**")
             st.caption(f"{book["author"]}")
             st.caption(f"Biblioteca: {library["name"]}")
-            st.write(f"📅 Empréstimo: {loan["request_date"]} | Devolução: {loan["return_date"]}")
-        with c2:
-            st.info(f"{loan["active"]}")
+            if loan["active"]:
+                st.warning("Pendente") 
+            else: 
+                st.success("Concluído")
+        
+        with c3:
+            st.write(f"📅 Empréstimo: {request_date} | Devolução: {return_date}")
 
 # Renderiza todos os empréstimos
 def render_loans(loans):
