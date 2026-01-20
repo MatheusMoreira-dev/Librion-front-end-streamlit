@@ -41,9 +41,11 @@ def user_header():
 
     with col4:
         if st.button("Sair", type="tertiary", width="stretch"):
-            st.session_state.user = ""
+            st.session_state.user = None
+            st.session_state.is_admin = None
+            st.session_state.auth_token = None
+            
             st.switch_page("home.py")
-            pass
 
 # Cabeçalho de admin
 def admin_header():
@@ -72,7 +74,11 @@ def admin_header():
 
     with cols[6]:
         if st.button("Sair", type="tertiary", width="stretch"):
-            pass
+            st.session_state.user = None
+            st.session_state.is_admin = None
+            st.session_state.auth_token = None
+            
+            st.switch_page("home.py")
 
 # Renderiza o cabeçalho
 def render_header():

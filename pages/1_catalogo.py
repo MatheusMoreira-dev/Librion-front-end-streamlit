@@ -12,20 +12,21 @@ def fetch_books(filters = None):
         response = librion_api("POST", "/books/search", json=filters)
 
     else:
-        response = librion_api("GET", "/books")
+        response = librion_api("GET", "/books/")
 
     if response["success"]:
         return response["data"]
     
-    st.error("Erro na requisição dos livros")
-    st.stop()       
+    st.toast("Erro na requisição dos livros")
+    st.rerun()       
         
 # Busca na session os filtros selecionados
 def filter_books():
     filters = {
-        "title" : st.session_state.title if not "" else None,
+        "title" : st.session_state.get("title"),
         "library_ids": list(map(lambda l:int(l["id"]), st.session_state.libraries))
     }
+
 
     # Busca na API os livros filtrados e salva em uma "variável" de estado "books"
     st.session_state.books = fetch_books(filters)
@@ -40,7 +41,14 @@ def clear_filters():
 # Formulário para filtragem
 def render_filters():
     # bibliotecas da API
-    response = librion_api("GET", "/libraries")
+    response = librion_api("GET", "/libraries/")
+    
+  # Inicializa session_state se ainda não existir
+    if "title" not in st.session_state:
+        st.session_state.title = None
+
+    if "libraries" not in st.session_state:
+        st.session_state.libraries = []
 
     if response["success"]:
         all_libraries = response["data"]
@@ -49,10 +57,10 @@ def render_filters():
             col1, col2 = st.columns([2, 1])
 
             with col1:
-                st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra", key="title")
+                title = st.text_input("Título", placeholder="Ex: Viagem ao Centro da Terra", key="title")
             
             with col2:
-                st.multiselect("Filtra por biblioteca",placeholder="Selecionar" , options=all_libraries, format_func= lambda l:l["name"], key="libraries")
+                libraries = st.multiselect("Filtra por biblioteca",placeholder="Selecionar" , options=all_libraries, format_func= lambda l:l["name"], key="libraries")
 
             with st.container():
                 __, center, __ = st.columns([4,2,4])
@@ -62,7 +70,7 @@ def render_filters():
                     
                     with col1:
                         submit = st.button("Buscar",type='primary',width='stretch', on_click=filter_books)
-                    
+                            
                     with col2:
                         clear = st.button("Limpar Filtros", type='secondary', width='stretch', on_click=clear_filters)
     else:
@@ -86,7 +94,7 @@ def modal_details(book:dict):
 
 # Requisitar um empréstimo
 def request_loan(copy_id):
-    response = librion_api("POST", "/readers/me/loans", json={"copy_id": copy_id}, token=st.session_state.get("auth_token"))
+    response = librion_api("POST", "/readers/me/loans/", json={"copy_id": copy_id}, token=st.session_state.get("auth_token"))
     
     if response["success"]:
         st.toast("Empréstimo solicitado!")
