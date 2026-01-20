@@ -48,6 +48,8 @@ def user_header():
 # Cabeçalho de admin
 def admin_header():
     cols = st.columns(7)
+    user_email = st.session_state.get("user", {}).get("email")
+    is_manager = True if user_email == "ifce@gmail.com" else False 
 
     with cols[0]:
         st.markdown("### 📘 Librion")
@@ -62,7 +64,7 @@ def admin_header():
             st.switch_page("pages/5_admin_usuarios.py")
     
     with cols[3]:
-        if st.button("🏢 Bibliotecas", use_container_width=True):
+        if st.button("🏢 Bibliotecas", use_container_width=True, disabled= not is_manager):
             st.switch_page("pages/6_admin_bibliotecas.py")
     
     with cols[5]:

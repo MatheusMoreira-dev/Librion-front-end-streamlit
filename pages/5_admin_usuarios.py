@@ -38,8 +38,6 @@ def create_user(name, email, cep, password):
         }
     }
 
-
-
 # funcao de listagem (MOCK)
 
 def get_users():
